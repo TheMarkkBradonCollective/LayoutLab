@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Account System ───────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedVenues    Venue[]         @relation("VenueOwner")
+  memberships    VenueMember[]
+  layouts        Layout[]        @relation("LayoutCreator")
+  layoutVersions LayoutVersion[]
+  activityLogs   ActivityLog[]
+  shareLinks     ShareLink[]
+}
+
+// ─── Venue System ─────────────────────────────────────────────────
+
+model Venue {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  capacity  Int?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId String
+  owner   User   @relation("VenueOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  rooms      Room[]
+  members    VenueMember[]
+  items      VenueItem[]
+  layouts    Layout[]
+  zones      Zone[]
+  shareLinks ShareLink[]
+  activityLogs ActivityLog[]
+}
+
+model Room {
+  id         String  @id @default(cuid())
+  name       String
+  width      Float   @default(20)
+  height     Float   @default(15)
+  floorPlan  String? // JSON floor plan data
+  model3dUrl String?
+  capacity   Int?
+
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  layouts Layout[]
+  zones   Zone[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Team & Permissions ─────────────────────────────────────────────
+// VenueRole: OWNER | MANAGER | DESIGNER | STAFF | VIEWER
+
+model VenueMember {
+  id     String @id @default(cuid())
+  role   String @default("VIEWER")
+
+  canEdit   Boolean @default(false)
+  canSave   Boolean @default(false)
+  canDelete Boolean @default(false)
+  canShare  Boolean @default(false)
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([userId, venueId])
+}
+
+// ─── Furniture Library ──────────────────────────────────────────────
+// ItemCategory: TABLES | SEATING | EQUIPMENT | DECOR
+
+model VenueItem {
+  id       String @id @default(cuid())
+  name     String
+  category String
+  width    Float
+  height   Float
+  depth    Float        @default(0)
+  quantity Int          @default(1)
+  capacity Int?
+  rules    String?      // JSON rules
+  iconUrl  String?
+  color    String       @default("#6366f1")
+
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Floor Plans & Layouts ─────────────────────────────────────────
+
+model Layout {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  isTemplate  Boolean @default(false)
+
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  roomId  String
+  room    Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  creatorId String
+  creator   User   @relation("LayoutCreator", fields: [creatorId], references: [id])
+
+  objects  LayoutObject[]
+  versions LayoutVersion[]
+  shareLinks ShareLink[]
+  simulations Simulation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LayoutObject {
+  id       String  @id @default(cuid())
+  itemName String
+  itemType String
+  category String
+  x        Float
+  y        Float
+  width    Float
+  height   Float
+  rotation Float   @default(0)
+  locked   Boolean @default(false)
+  color    String  @default("#6366f1")
+  capacity Int?
+  metadata String? // JSON
+
+  layoutId String
+  layout   Layout @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LayoutVersion {
+  id      Int    @id @default(autoincrement())
+  version Int
+  label   String?
+  snapshot String // JSON snapshot of all objects
+
+  layoutId  String
+  layout    Layout @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// ─── Zones ─────────────────────────────────────────────────────────
+// ZoneType: DANCE_FLOOR | BAR | SEATING | VIP | ENTRANCE | STAGE | CUSTOM
+
+model Zone {
+  id       String @id @default(cuid())
+  name     String
+  type     String @default("CUSTOM")
+  x        Float
+  y        Float
+  width    Float
+  height   Float
+  capacity Int?
+  rules    String?  // JSON behavior rules
+
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  roomId  String?
+  room    Room?  @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Activity History ──────────────────────────────────────────────
+
+model ActivityLog {
+  id         String @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String
+  before     String? // JSON
+  after      String? // JSON
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+// ─── External Sharing ────────────────────────────────────────────────
+// ShareAccess: VIEW_2D | VIEW_3D | VIEW_BOTH
+
+model ShareLink {
+  id        String  @id @default(cuid())
+  token     String  @unique @default(cuid())
+  access    String  @default("VIEW_BOTH")
+  isActive  Boolean     @default(true)
+  expiresAt DateTime?
+
+  layoutId  String
+  layout    Layout @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id])
+  venueId   String
+  venue     Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+// ─── Simulation ────────────────────────────────────────────────────
+// SimulationPreset: WEDDING | CONCERT | BINGO | NIGHTCLUB | CUSTOM
+// SimulationSpeed: SLOW | NORMAL | FAST | STRESS
+
+model Simulation {
+  id       String @id @default(cuid())
+  name     String
+  preset   String @default("CUSTOM")
+  speed    String @default("NORMAL")
+  settings String           // JSON simulation config
+  results  String?          // JSON analytics results
+
+  layoutId String
+  layout   Layout @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
