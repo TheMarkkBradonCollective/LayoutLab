@@ -236,48 +236,6 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     color: "#D4D4D8",
     shape: "circle",
   },
-
-  // Structural / fixed (quantity 1 each — placed as room fixtures)
-  {
-    id: "fixture-bay-door",
-    name: "Bay Door",
-    category: "DECOR",
-    width: 12,
-    height: 1,
-    quantity: 1,
-    color: "#57534E",
-    shape: "rectangle",
-  },
-  {
-    id: "fixture-ramp",
-    name: "Bay Door Ramp",
-    category: "DECOR",
-    width: 11,
-    height: 13,
-    quantity: 1,
-    color: "#A8A29E",
-    shape: "rectangle",
-  },
-  {
-    id: "fixture-emergency-exit",
-    name: "Emergency Exit",
-    category: "DECOR",
-    width: 4,
-    height: 1,
-    quantity: 1,
-    color: "#DC2626",
-    shape: "rectangle",
-  },
-  {
-    id: "fixture-double-exit",
-    name: "Double Exit Doors",
-    category: "DECOR",
-    width: 6,
-    height: 1,
-    quantity: 1,
-    color: "#DC2626",
-    shape: "rectangle",
-  },
 ];
 
 export function getStageArea(specs: TrsFloorSpecs = TRS_MAIN_FLOOR) {
@@ -287,72 +245,6 @@ export function getStageArea(specs: TrsFloorSpecs = TRS_MAIN_FLOOR) {
     width: specs.width - specs.stageOffsetSide * 2,
     height: 4,
   };
-}
-
-/** Locked structural fixtures mapped to the main floor plan. */
-export function buildTrsStructuralFixtures(
-  specs: TrsFloorSpecs = TRS_MAIN_FLOOR
-) {
-  const length = specs.lengthLeft;
-  const stage = getStageArea(specs);
-
-  return [
-    {
-      itemType: "fixture-bay-door",
-      itemName: "Bay Door",
-      category: "DECOR" as ItemCategory,
-      x: specs.width - specs.bayDoorWidth,
-      y: length - 20,
-      width: specs.bayDoorWidth,
-      height: 1,
-      color: "#57534E",
-      locked: true,
-    },
-    {
-      itemType: "fixture-ramp",
-      itemName: "Bay Door Ramp",
-      category: "DECOR" as ItemCategory,
-      x: specs.width - specs.rampWidth - 1,
-      y: length - specs.rampDepth - 20,
-      width: specs.rampWidth,
-      height: specs.rampDepth,
-      color: "#A8A29E",
-      locked: true,
-    },
-    {
-      itemType: "fixture-double-exit",
-      itemName: "Double Exit Doors",
-      category: "DECOR" as ItemCategory,
-      x: 0,
-      y: 40,
-      width: 1,
-      height: specs.doubleExitWidth,
-      color: "#DC2626",
-      locked: true,
-    },
-    {
-      itemType: "fixture-emergency-exit",
-      itemName: "Emergency Exit",
-      category: "DECOR" as ItemCategory,
-      x: specs.width - 1,
-      y: 15,
-      width: 1,
-      height: specs.emergencyExitWidth,
-      color: "#DC2626",
-      locked: true,
-    },
-    {
-      itemType: "stage-platform",
-      itemName: "Stage Platform",
-      category: "EQUIPMENT" as ItemCategory,
-      x: stage.x,
-      y: stage.y,
-      width: stage.width,
-      height: stage.height,
-      color: "#1E293B",
-      locked: true,
-    },
-  ];
 }
 
 export const TRS_INVENTORY_SUMMARY = {

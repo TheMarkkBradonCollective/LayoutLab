@@ -10,7 +10,6 @@ const CATEGORIES: { key: ItemCategory; label: string }[] = [
   { key: "TABLES", label: "Tables" },
   { key: "SEATING", label: "Seating" },
   { key: "EQUIPMENT", label: "Equipment" },
-  { key: "DECOR", label: "Fixtures" },
 ];
 
 export function ItemsPanel() {

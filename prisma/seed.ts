@@ -55,8 +55,8 @@ async function main() {
           { userId: mike.id, role: "MANAGER", canEdit: true, canSave: true, canDelete: true, canShare: true },
         ],
       },
-      items: {
-        create: TRS_FURNITURE.filter((i) => !i.id.startsWith("fixture-")).map((item) => ({
+        items: {
+        create: TRS_FURNITURE.map((item) => ({
           name: item.name,
           category: item.category,
           width: item.width,
@@ -84,7 +84,6 @@ async function main() {
       creatorId: user.id,
       objects: {
         create: [
-          { itemName: "Stage Platform", itemType: "stage-platform", category: "EQUIPMENT", x: 3.5, y: 3, width: 28, height: 4, color: "#1E293B", locked: true },
           { itemName: "Merch Table (8 ft)", itemType: "merch-8ft", category: "TABLES", x: 4, y: 25, width: 8, height: 2.5, color: "#6B7280" },
           { itemName: "Green Couch", itemType: "couch-green", category: "SEATING", x: 20, y: 50, width: 6, height: 2.5, color: "#166534", capacity: 3 },
         ],

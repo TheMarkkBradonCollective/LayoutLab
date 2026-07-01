@@ -6,6 +6,7 @@ import type Konva from "konva";
 import { useEditorStore } from "@/stores/editor-store";
 import type { FloorObject } from "@/types";
 import { PIXELS_PER_FOOT, TRS_MAIN_FLOOR } from "@/lib/trs-inventory";
+import { FloorPlanLayer } from "./floor-plan-layer";
 
 const ROOM_WIDTH = TRS_MAIN_FLOOR.width;
 const ROOM_HEIGHT = TRS_MAIN_FLOOR.lengthLeft;
@@ -110,18 +111,10 @@ export function FloorPlanner() {
           }}
         >
           <Layer>
-            {/* Room background */}
-            <Rect
-              x={20}
-              y={20}
-              width={stageWidth}
-              height={stageHeight}
-              fill="#fafaf9"
-              stroke="#d6d3d1"
-              strokeWidth={2}
-            />
+            {/* Fixed floor plan: walls, doors, stage zone, ramp */}
+            <FloorPlanLayer offsetX={20} offsetY={20} />
 
-            {/* Grid */}
+            {/* Grid over floor area */}
             {showGrid && <GridLines width={stageWidth} height={stageHeight} gridSize={gridSize} />}
 
             {/* Room label */}

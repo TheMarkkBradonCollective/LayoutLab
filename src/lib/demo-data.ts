@@ -1,10 +1,5 @@
 import type { VenueData, LayoutData, FloorObject, LiveUser } from "@/types";
-import {
-  TRS_MAIN_FLOOR,
-  TRS_UNIT,
-  buildTrsStructuralFixtures,
-} from "@/lib/trs-inventory";
-import { generateId } from "@/lib/utils";
+import { TRS_MAIN_FLOOR, TRS_UNIT } from "@/lib/trs-inventory";
 
 export const TRS_VENUE_ID = "venue-the-rink-studios";
 
@@ -22,30 +17,13 @@ export const DEMO_VENUE: VenueData = {
       height: TRS_MAIN_FLOOR.lengthLeft,
       capacity: 400,
       unit: TRS_UNIT,
-      notes: `Left wall: ${TRS_MAIN_FLOOR.lengthLeft} ft · Right wall: ${TRS_MAIN_FLOOR.lengthRight} ft`,
+      notes: `Left: ${TRS_MAIN_FLOOR.lengthLeft} ft · Right: ${TRS_MAIN_FLOOR.lengthRight} ft · Width: ${TRS_MAIN_FLOOR.width} ft`,
     },
   ],
 };
 
-function fixturesToObjects(): FloorObject[] {
-  return buildTrsStructuralFixtures().map((fixture) => ({
-    id: generateId(),
-    itemName: fixture.itemName,
-    itemType: fixture.itemType,
-    category: fixture.category,
-    x: fixture.x,
-    y: fixture.y,
-    width: fixture.width,
-    height: fixture.height,
-    rotation: 0,
-    locked: fixture.locked,
-    color: fixture.color,
-  }));
-}
-
-/** Sample concert layout: structural fixtures + representative furniture. */
+/** Movable furniture only — doors/exits/ramp/stage zone are on the floor plan layer. */
 export const DEMO_EVENT_OBJECTS: FloorObject[] = [
-  ...fixturesToObjects(),
   {
     id: "obj-merch-1",
     itemName: "Merch Table (8 ft)",
@@ -154,12 +132,12 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
   },
 ];
 
-export const DEMO_EMPTY_OBJECTS: FloorObject[] = fixturesToObjects();
+export const DEMO_EMPTY_OBJECTS: FloorObject[] = [];
 
 export const DEMO_LAYOUT: LayoutData = {
   id: "layout-concert-on-ice",
   name: "Concert on Ice",
-  description: "Main floor with stage, exits, bay door, and sample furniture",
+  description: "Main floor with sample furniture placement",
   roomId: "room-main-floor",
   venueId: TRS_VENUE_ID,
   objects: DEMO_EVENT_OBJECTS,
