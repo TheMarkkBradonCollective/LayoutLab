@@ -221,7 +221,7 @@ export function FloorPlanner() {
       </div>
 
       <div className="absolute bottom-3 right-3 rounded bg-white/80 px-2 py-1 text-[10px] text-surface-500 backdrop-blur-sm">
-        1 grid = {gridSize} ft · Hall {TRS_MAIN_FLOOR.width}×{TRS_MAIN_FLOOR.lengthLeft} ft
+        Plan view (top-down) · 1 grid = {gridSize} ft
       </div>
     </div>
   );

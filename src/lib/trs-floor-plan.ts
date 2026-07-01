@@ -37,15 +37,19 @@ export interface FloorPlanElement {
 }
 
 /**
- * TRS Performance Venue — facing in from main entrance (top).
+ * TRS Performance Venue — PLAN VIEW (looking straight down at the floor).
  *
- * Coordinate system (feet):
- *   Origin top-left · y increases toward stage/back wall · x increases to your right
+ * All x/y/width/height values are horizontal footprints on the floor plane.
+ * This is not an elevation or "facing into the room" perspective.
  *
- * Standing at the main entrance looking into the hall:
- *   YOUR LEFT  = left wall  (90 ft: cleaning closet → back wall / stage)
- *   YOUR RIGHT = right wall (84 ft: bar → greenroom door)
- *   AHEAD      = down (+y) toward stage
+ * Coordinate system (feet, top-down on screen):
+ *   x → east on the plan (screen right)
+ *   y → south on the plan (screen down)
+ *
+ * Main entrance is on the north edge (top of screen). Walking in from there:
+ *   LEFT WALL  = west edge  (90 ft: cleaning closet → back wall / stage)
+ *   RIGHT WALL = east edge  (84 ft: bar → greenroom door)
+ *   Toward stage = south (+y) on the plan
  */
 export const TRS_LAYOUT = {
   leftWingWidth: 12,
@@ -281,7 +285,8 @@ export function buildTrsFloorPlan(
       label: "Stairs",
     },
 
-    // ─── Top of hall — sound (your left) + bar (your right) ─────────
+    // ─── Top of hall — floor footprints (plan view) ────────────────
+    // Sound booth footprint, front-left inside hall
     {
       id: "sound-zone",
       type: "sound-zone",
@@ -294,10 +299,10 @@ export function buildTrsFloorPlan(
     {
       id: "bar-zone",
       type: "bar-zone",
-      x: mainRight - 12,
-      y: 2,
-      width: 12,
-      height: 16,
+      x: mainRight - 10,
+      y: 4,
+      width: 10,
+      height: 18,
       label: "Bar",
     },
 

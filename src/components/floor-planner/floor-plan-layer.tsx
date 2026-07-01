@@ -64,43 +64,137 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
         />
       ))}
 
-      {/* Wall lengths — left/right as you face in from main entrance */}
+      <PlanViewLegend
+        offsetX={offsetX}
+        offsetY={offsetY}
+        mainX={mainX}
+        mainRight={mainRight}
+        mainWidth={mainWidth}
+      />
+    </Group>
+  );
+}
+
+/** Top-down plan markers — entry direction on the floor, not camera facing */
+function PlanViewLegend({
+  offsetX,
+  offsetY,
+  mainX,
+  mainRight,
+  mainWidth,
+}: {
+  offsetX: number;
+  offsetY: number;
+  mainX: number;
+  mainRight: number;
+  mainWidth: number;
+}) {
+  const px = (v: number) => v * PIXELS_PER_FOOT;
+  const entryX = offsetX + px(mainX + mainWidth / 2);
+  const entryY = offsetY + px(2);
+  const arrowLen = px(8);
+
+  return (
+    <Group listening={false}>
+      {/* Plan view badge */}
       <Text
-        x={offsetX + px(mainX + mainWidth / 2) - 36}
+        x={offsetX + px(TRS_LAYOUT.totalWidth) - 72}
         y={offsetY - 18}
-        text="MAIN ENTRANCE — facing ↓"
+        text="PLAN VIEW ↓"
         fontSize={8}
         fill="#78716c"
         fontStyle="bold"
       />
+
+      {/* Main entrance label on north wall */}
       <Text
-        x={offsetX - 58}
-        y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft / 2) - 28}
-        text="YOUR LEFT · 90 ft"
+        x={offsetX + px(mainX + mainWidth / 2) - 28}
+        y={offsetY - 10}
+        text="MAIN ENTRANCE"
+        fontSize={8}
+        fill="#57534e"
+        fontStyle="bold"
+      />
+
+      {/* Walk-in arrow on the floor (patron path, not viewer facing) */}
+      <Line
+        points={[entryX, entryY, entryX, entryY + arrowLen]}
+        stroke="#78716c"
+        strokeWidth={1.5}
+      />
+      <Line
+        points={[entryX - 5, entryY + arrowLen - 6, entryX, entryY + arrowLen, entryX + 5, entryY + arrowLen - 6]}
+        stroke="#78716c"
+        strokeWidth={1.5}
+        lineCap="round"
+        lineJoin="round"
+      />
+      <Text x={entryX + 6} y={entryY + 4} text="walk in" fontSize={7} fill="#a8a29e" />
+
+      {/* L / R markers just inside the door line */}
+      <Text
+        x={offsetX + px(mainX) + 4}
+        y={offsetY + px(6)}
+        text="L"
+        fontSize={10}
+        fill="#a8a29e"
+        fontStyle="bold"
+      />
+      <Text
+        x={offsetX + px(mainRight) - 12}
+        y={offsetY + px(6)}
+        text="R"
+        fontSize={10}
+        fill="#a8a29e"
+        fontStyle="bold"
+      />
+
+      {/* Wall length dimensions along plan edges */}
+      <Text
+        x={offsetX - 62}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft / 2) - 32}
+        text="LEFT WALL"
         fontSize={8}
         fill="#a8a29e"
         rotation={-90}
       />
       <Text
-        x={offsetX + px(mainRight) + 8}
-        y={offsetY + px(TRS_MAIN_FLOOR.lengthRight / 2) - 28}
-        text="YOUR RIGHT · 84 ft"
+        x={offsetX - 62}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft / 2) - 10}
+        text="90 ft"
+        fontSize={8}
+        fill="#a8a29e"
+        rotation={-90}
+      />
+      <Text
+        x={offsetX + px(mainRight) + 10}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthRight / 2) - 32}
+        text="RIGHT WALL"
         fontSize={8}
         fill="#a8a29e"
         rotation={90}
       />
       <Text
-        x={offsetX + px(mainX + mainWidth / 2) - 12}
+        x={offsetX + px(mainRight) + 10}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthRight / 2) - 10}
+        text="84 ft"
+        fontSize={8}
+        fill="#a8a29e"
+        rotation={90}
+      />
+
+      <Text
+        x={offsetX + px(mainX + mainWidth / 2) - 14}
         y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft) + 6}
-        text="STAGE / BACK WALL"
+        text="STAGE"
         fontSize={8}
         fill="#a8a29e"
         fontStyle="bold"
       />
       <Text
-        x={offsetX + px(mainX + mainWidth / 2) - 14}
+        x={offsetX + px(mainX + mainWidth / 2) - 22}
         y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft) + 18}
-        text={`${TRS_MAIN_FLOOR.width} ft wide`}
+        text={`${TRS_MAIN_FLOOR.width} ft between walls`}
         fontSize={9}
         fill="#a8a29e"
       />
