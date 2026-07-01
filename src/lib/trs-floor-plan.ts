@@ -37,14 +37,15 @@ export interface FloorPlanElement {
 }
 
 /**
- * TRS Performance Venue — vertical orientation (annotated drawing).
+ * TRS Performance Venue — facing in from main entrance (top).
  *
- *   y ↓  entrance / front (top)
- *   x →  room width
+ * Coordinate system (feet):
+ *   Origin top-left · y increases toward stage/back wall · x increases to your right
  *
- *   Main hall: 35 ft wide between left & right walls
- *   Left wall:  90 ft (cleaning closet → back wall / stage)
- *   Right wall: 84 ft (bar area → greenroom) — 6 ft shorter at stage end
+ * Standing at the main entrance looking into the hall:
+ *   YOUR LEFT  = left wall  (90 ft: cleaning closet → back wall / stage)
+ *   YOUR RIGHT = right wall (84 ft: bar → greenroom door)
+ *   AHEAD      = down (+y) toward stage
  */
 export const TRS_LAYOUT = {
   leftWingWidth: 12,
@@ -172,25 +173,49 @@ export function buildTrsFloorPlan(
   const rampY = rollerY;
 
   return [
-    // ─── Left wing: restrooms + service stairs ────────────────────
+    // ─── Left wing (your left entering): cleaning closet, restrooms ─
+    {
+      id: "cleaning-closet",
+      type: "shaded-zone",
+      x: 0,
+      y: 2,
+      width: leftWingWidth,
+      height: 8,
+      label: "Cleaning Closet",
+    },
     {
       id: "restrooms",
       type: "restroom",
       x: 0,
-      y: 4,
+      y: 12,
       width: leftWingWidth,
-      height: 22,
+      height: 18,
       label: "Restrooms",
     },
     {
       id: "wing-stairs",
       type: "stairs",
       x: 1,
-      y: 28,
+      y: 32,
       width: leftWingWidth - 2,
       height: 14,
       label: "UP 14 TREADS",
     },
+
+    // ─── Main entrance (top center of hall) ────────────────────────
+    {
+      id: "top-double-doors",
+      type: "door",
+      x: mainX + mainWidth / 2 - specs.doubleExitWidth / 2,
+      y: -0.5,
+      width: specs.doubleExitWidth,
+      height: 1,
+      label: "Main Entrance (6 ft)",
+      wall: "top",
+      doorKind: "top",
+    },
+
+    // ─── Side vestibule off left wing (auxiliary entry) ─────────────
     {
       id: "vestibule",
       type: "door",
@@ -198,7 +223,7 @@ export function buildTrsFloorPlan(
       y: 0,
       width: leftWingWidth,
       height: 2,
-      label: "Vestibule Entrance",
+      label: "Vestibule",
       wall: "top",
       doorKind: "vestibule",
     },
@@ -256,37 +281,24 @@ export function buildTrsFloorPlan(
       label: "Stairs",
     },
 
-    // ─── Top of hall — entrance double doors ───────────────────────
-    {
-      id: "top-double-doors",
-      type: "door",
-      x: mainX + mainWidth / 2 - specs.doubleExitWidth / 2,
-      y: -0.5,
-      width: specs.doubleExitWidth,
-      height: 1,
-      label: "Entrance (6 ft)",
-      wall: "top",
-      doorKind: "top",
-    },
-
-    // ─── Bar + sound at top of main hall (annotated yellow zones) ──
-    {
-      id: "bar-zone",
-      type: "bar-zone",
-      x: mainX,
-      y: 2,
-      width: mainWidth - 8,
-      height: 10,
-      label: "Bar",
-    },
+    // ─── Top of hall — sound (your left) + bar (your right) ─────────
     {
       id: "sound-zone",
       type: "sound-zone",
-      x: mainRight - 8,
+      x: mainX + 2,
       y: 2,
       width: 8,
       height: 6,
       label: "Sound",
+    },
+    {
+      id: "bar-zone",
+      type: "bar-zone",
+      x: mainRight - 12,
+      y: 2,
+      width: 12,
+      height: 16,
+      label: "Bar",
     },
 
     // ─── Columns near entrance ─────────────────────────────────────
@@ -318,7 +330,7 @@ export function buildTrsFloorPlan(
       label: "",
     },
 
-    // ─── Bay door + ramp on LEFT wall (annotated load-in) ──────────
+    // ─── Bay door + ramp on YOUR LEFT wall (load-in) ───────────────
     {
       id: "roller-door",
       type: "door",
@@ -340,7 +352,7 @@ export function buildTrsFloorPlan(
       label: "Ramp (11 × 13 ft)",
     },
 
-    // ─── Exits ─────────────────────────────────────────────────────
+    // ─── Exits (your right wall + back corners) ────────────────────
     {
       id: "exit-right-top",
       type: "door",

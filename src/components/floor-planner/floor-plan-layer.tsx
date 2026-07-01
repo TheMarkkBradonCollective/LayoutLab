@@ -64,27 +64,27 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
         />
       ))}
 
-      {/* Wall length annotations */}
+      {/* Wall lengths — left/right as you face in from main entrance */}
       <Text
-        x={offsetX + px(mainX + mainWidth / 2) - 30}
-        y={offsetY - 16}
-        text="ENTRANCE"
+        x={offsetX + px(mainX + mainWidth / 2) - 36}
+        y={offsetY - 18}
+        text="MAIN ENTRANCE — facing ↓"
         fontSize={8}
-        fill="#a8a29e"
+        fill="#78716c"
         fontStyle="bold"
       />
       <Text
-        x={offsetX - 52}
-        y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft / 2) - 20}
-        text="LEFT 90 ft"
+        x={offsetX - 58}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft / 2) - 28}
+        text="YOUR LEFT · 90 ft"
         fontSize={8}
         fill="#a8a29e"
         rotation={-90}
       />
       <Text
         x={offsetX + px(mainRight) + 8}
-        y={offsetY + px(TRS_MAIN_FLOOR.lengthRight / 2) - 20}
-        text="RIGHT 84 ft"
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthRight / 2) - 28}
+        text="YOUR RIGHT · 84 ft"
         fontSize={8}
         fill="#a8a29e"
         rotation={90}
