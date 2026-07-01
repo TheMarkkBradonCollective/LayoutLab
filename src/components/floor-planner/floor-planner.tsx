@@ -127,7 +127,7 @@ export function FloorPlanner() {
             <Text
               x={20}
               y={4}
-              text={room?.name ?? "Main Hall"}
+              text={room?.name ?? "Main Rink"}
               fontSize={11}
               fill="#78716c"
             />

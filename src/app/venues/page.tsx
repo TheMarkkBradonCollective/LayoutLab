@@ -3,20 +3,12 @@ import { Building2, Plus, MapPin, Users } from "lucide-react";
 
 const DEMO_VENUES = [
   {
-    id: "venue-grand-ballroom",
-    name: "Grand Ballroom",
-    address: "123 Event Plaza, San Francisco, CA",
+    id: "venue-the-rink-studios",
+    name: "The Rink Studios",
+    address: "TRS — Primary venue",
     rooms: 4,
-    capacity: 500,
+    capacity: 400,
     members: 8,
-  },
-  {
-    id: "venue-riverside",
-    name: "Riverside Pavilion",
-    address: "456 River Road, Portland, OR",
-    rooms: 2,
-    capacity: 200,
-    members: 4,
   },
 ];
 
@@ -43,7 +35,7 @@ export default function VenuesPage() {
           <div>
             <h1 className="text-2xl font-bold text-surface-900">Your Venues</h1>
             <p className="mt-1 text-sm text-surface-500">
-              Manage your venue workspaces
+              The Rink Studios workspace
             </p>
           </div>
           <button className="flex items-center gap-2 rounded-lg bg-venue-600 px-4 py-2 text-sm font-medium text-white hover:bg-venue-700">

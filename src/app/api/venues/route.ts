@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         create: { userId: ownerId, role: "OWNER", canEdit: true, canSave: true, canDelete: true, canShare: true },
       },
       rooms: {
-        create: { name: "Main Hall", width: 20, height: 15 },
+        create: { name: "Main Rink", width: 30, height: 20 },
       },
     },
     include: { rooms: true, members: true },

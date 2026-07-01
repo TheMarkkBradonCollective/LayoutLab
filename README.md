@@ -2,6 +2,16 @@
 
 Venue-owned digital workspace for creating, managing, sharing, and simulating event layouts.
 
+Built for **The Rink Studios (TRS)** — the venue this app was designed for.
+
+## Deployment
+
+Merges to `main` deploy automatically to:
+
+**https://layout-lab-trs.vercel.app**
+
+The workspace demo runs client-side, so the floor planner works without a persistent database. API routes will need a hosted database (e.g. Vercel Postgres, Neon) for full persistence in production.
+
 ## Overview
 
 MyVenue is a tablet-first platform that gives venues full control over their digital space. Design accurate 2D floor plans, view layouts in 3D walkthrough mode, collaborate with teams in real time, simulate guest movement, and share layouts externally.
@@ -47,7 +57,9 @@ npx tsx prisma/seed.ts
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) for the landing page, or go directly to [http://localhost:3000/workspace](http://localhost:3000/workspace) for the demo floor planner.
+Visit [https://layout-lab-trs.vercel.app/workspace](https://layout-lab-trs.vercel.app/workspace) for the live demo, or run locally:
+
+Open [http://localhost:3000](http://localhost:3000) for the landing page, or go directly to [http://localhost:3000/workspace](http://localhost:3000/workspace) for the floor planner with **The Rink Studios** demo data.
 
 ## Project Structure
 

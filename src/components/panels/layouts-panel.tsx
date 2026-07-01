@@ -5,11 +5,11 @@ import { useEditorStore } from "@/stores/editor-store";
 import { cn } from "@/lib/utils";
 
 const DEMO_LAYOUTS = [
-  { id: "wedding", name: "Wedding Setup", version: 3, updated: "2 hours ago" },
-  { id: "corporate", name: "Corporate Event", version: 1, updated: "Yesterday" },
-  { id: "birthday", name: "Birthday Party", version: 2, updated: "3 days ago" },
-  { id: "concert", name: "Concert Layout", version: 1, updated: "1 week ago" },
-  { id: "empty", name: "Empty Template", version: 1, updated: "2 weeks ago" },
+  { id: "concert-on-ice", name: "Concert on Ice", version: 3, updated: "2 hours ago" },
+  { id: "hockey-night", name: "Hockey Night", version: 2, updated: "Yesterday" },
+  { id: "birthday-party", name: "Birthday Party", version: 1, updated: "3 days ago" },
+  { id: "figure-skating", name: "Figure Skating Showcase", version: 2, updated: "1 week ago" },
+  { id: "empty-rink", name: "Empty Rink", version: 1, updated: "2 weeks ago" },
 ];
 
 export function LayoutsPanel() {
@@ -19,8 +19,8 @@ export function LayoutsPanel() {
     setCurrentLayout({
       id: layout.id,
       name: layout.name,
-      roomId: venue?.rooms[0]?.id ?? "room-1",
-      venueId: venue?.id ?? "venue-1",
+      roomId: venue?.rooms[0]?.id ?? "room-main-rink",
+      venueId: venue?.id ?? "venue-the-rink-studios",
       objects: currentLayout?.objects ?? [],
       version: layout.version,
     });

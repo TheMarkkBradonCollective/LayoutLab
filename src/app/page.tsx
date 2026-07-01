@@ -83,7 +83,9 @@ export default function HomePage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-surface-600">
             Design floor plans, collaborate in real time, simulate events, and share
-            layouts — all from one platform. The venue stays in control.
+            layouts — all from one platform. Built for{" "}
+            <span className="font-medium text-surface-800">The Rink Studios</span>.
+            The venue stays in control.
           </p>
           <div className="mt-8 flex items-center justify-center gap-4">
             <Link
@@ -144,7 +146,7 @@ export default function HomePage() {
       </main>
 
       <footer className="border-t border-surface-200 bg-white py-8 text-center text-sm text-surface-400">
-        MyVenue — Venue-owned digital workspace for event layouts
+        MyVenue — Built for The Rink Studios (TRS)
       </footer>
     </div>
   );

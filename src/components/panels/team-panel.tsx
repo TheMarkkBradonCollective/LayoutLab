@@ -3,10 +3,10 @@
 import { useEditorStore } from "@/stores/editor-store";
 
 const DEMO_TEAM = [
-  { id: "1", name: "Sarah Chen", role: "OWNER", status: "editing" as const, email: "sarah@venue.com" },
-  { id: "2", name: "Mike Johnson", role: "MANAGER", status: "editing" as const, email: "mike@venue.com" },
-  { id: "3", name: "John Smith", role: "VIEWER", status: "viewing" as const, email: "john@venue.com" },
-  { id: "4", name: "Emma Davis", role: "DESIGNER", status: "offline" as const, email: "emma@venue.com" },
+  { id: "1", name: "Sarah Chen", role: "OWNER", status: "editing" as const, email: "sarah@therinkstudios.com" },
+  { id: "2", name: "Mike Johnson", role: "MANAGER", status: "editing" as const, email: "mike@therinkstudios.com" },
+  { id: "3", name: "John Smith", role: "VIEWER", status: "viewing" as const, email: "john@therinkstudios.com" },
+  { id: "4", name: "Emma Davis", role: "DESIGNER", status: "offline" as const, email: "emma@therinkstudios.com" },
 ];
 
 const ROLE_COLORS: Record<string, string> = {

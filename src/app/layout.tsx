@@ -5,9 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MyVenue — Venue Digital Workspace",
+  title: "MyVenue — The Rink Studios",
   description:
-    "Design, collaborate, simulate, and share event layouts. The venue-owned digital operating system.",
+    "Venue-owned digital workspace for The Rink Studios. Design, collaborate, simulate, and share event layouts.",
 };
 
 export default function RootLayout({
