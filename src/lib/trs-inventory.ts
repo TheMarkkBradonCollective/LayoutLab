@@ -27,7 +27,7 @@ export const TRS_MAIN_FLOOR: TrsFloorSpecs = {
   emergencyExitWidth: 4,
   doubleExitWidth: 6,
   stageOffsetBack: 3,
-  stageOffsetSide: 3.5,
+  stageOffsetSide: 3.6,
 };
 
 export interface TrsFurnitureItem {

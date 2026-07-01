@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { TRS_FURNITURE, TRS_MAIN_FLOOR } from "../src/lib/trs-inventory";
+import { TRS_LAYOUT } from "../src/lib/trs-floor-plan";
 
 const prisma = new PrismaClient();
 
@@ -30,22 +31,22 @@ async function main() {
     where: { id: VENUE_ID },
     update: {
       name: "The Rink Studios",
-      capacity: 400,
+      capacity: 620,
     },
     create: {
       id: VENUE_ID,
       name: "The Rink Studios",
       address: "The Rink Studios",
-      capacity: 400,
+      capacity: 620,
       ownerId: user.id,
       rooms: {
         create: [
           {
             id: "room-main-floor",
-            name: "Main Floor",
-            width: TRS_MAIN_FLOOR.width,
-            height: TRS_MAIN_FLOOR.lengthLeft,
-            capacity: 400,
+            name: "Performance Venue",
+            width: TRS_LAYOUT.totalWidth,
+            height: TRS_LAYOUT.totalHeight,
+            capacity: 620,
           },
         ],
       },
@@ -70,7 +71,7 @@ async function main() {
     include: { rooms: true },
   });
 
-  const mainFloor = venue.rooms.find((r) => r.name === "Main Floor")!;
+  const mainFloor = venue.rooms.find((r) => r.name === "Performance Venue")!;
 
   const layout = await prisma.layout.upsert({
     where: { id: "layout-concert-on-ice" },

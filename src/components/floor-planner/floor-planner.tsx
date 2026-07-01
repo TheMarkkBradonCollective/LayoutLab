@@ -5,11 +5,12 @@ import { Stage, Layer, Rect, Group, Text, Line } from "react-konva";
 import type Konva from "konva";
 import { useEditorStore } from "@/stores/editor-store";
 import type { FloorObject } from "@/types";
-import { PIXELS_PER_FOOT, TRS_MAIN_FLOOR } from "@/lib/trs-inventory";
+import { PIXELS_PER_FOOT } from "@/lib/trs-inventory";
+import { TRS_LAYOUT } from "@/lib/trs-floor-plan";
 import { FloorPlanLayer } from "./floor-plan-layer";
 
-const ROOM_WIDTH = TRS_MAIN_FLOOR.width;
-const ROOM_HEIGHT = TRS_MAIN_FLOOR.lengthLeft;
+const ROOM_WIDTH = TRS_LAYOUT.totalWidth;
+const ROOM_HEIGHT = TRS_LAYOUT.totalHeight;
 
 export function FloorPlanner() {
   const stageRef = useRef<Konva.Stage>(null);
