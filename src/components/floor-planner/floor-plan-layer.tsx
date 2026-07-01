@@ -292,6 +292,7 @@ function FloorPlanElementShape({
         <Group>
           <Rect x={x} y={y} width={w} height={h} fill="#e0f2fe" opacity={0.5} stroke="#7dd3fc" strokeWidth={1} />
           <Text x={x} y={y + 4} width={w} align="center" text={element.label} fontSize={7} fill="#0369a1" />
+          <Text x={x} y={y + 12} width={w} align="center" text="(outside hall)" fontSize={6} fill="#0369a1" opacity={0.7} />
           {[0, 1, 2].map((i) => (
             <Rect
               key={i}

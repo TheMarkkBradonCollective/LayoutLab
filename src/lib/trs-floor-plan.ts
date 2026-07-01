@@ -141,7 +141,7 @@ export function getHallBounds(specs: TrsFloorSpecs = TRS_MAIN_FLOOR) {
   return {
     minX: mainX + margin,
     maxX: mainRight - margin,
-    minY: 14,
+    minY: 22,
     maxY: specs.lengthLeft - specs.stageOffsetBack - TRS_LAYOUT.stageDepth - margin,
   };
 }
@@ -177,7 +177,7 @@ export function buildTrsFloorPlan(
   const rampY = rollerY;
 
   return [
-    // ─── Left wing (your left entering): cleaning closet, restrooms ─
+    // ─── Left wing (outside main hall): cleaning closet + stairs ───
     {
       id: "cleaning-closet",
       type: "shaded-zone",
@@ -188,21 +188,12 @@ export function buildTrsFloorPlan(
       label: "Cleaning Closet",
     },
     {
-      id: "restrooms",
-      type: "restroom",
-      x: 0,
-      y: 12,
-      width: leftWingWidth,
-      height: 18,
-      label: "Restrooms",
-    },
-    {
       id: "wing-stairs",
       type: "stairs",
       x: 1,
-      y: 32,
+      y: 14,
       width: leftWingWidth - 2,
-      height: 14,
+      height: 16,
       label: "UP 14 TREADS",
     },
 
@@ -265,45 +256,64 @@ export function buildTrsFloorPlan(
       doorKind: "service",
     },
 
-    // ─── Right utility block (greenroom) ───────────────────────────
+    // ─── Right wing (outside main hall): restrooms + greenroom ─────
+    {
+      id: "restrooms",
+      type: "restroom",
+      x: mainRight + 1,
+      y: 2,
+      width: rightShadeWidth - 2,
+      height: 20,
+      label: "Restrooms",
+    },
+    {
+      id: "restroom-door",
+      type: "door",
+      x: mainRight - 0.5,
+      y: 8,
+      width: 1,
+      height: 4,
+      label: "Restrooms",
+      wall: "right",
+      doorKind: "service",
+    },
     {
       id: "right-shade",
       type: "shaded-zone",
       x: mainRight,
-      y: 0,
+      y: 24,
       width: rightShadeWidth,
-      height: bottomRightY,
+      height: bottomRightY - 24,
       label: "Greenroom / Utility",
     },
     {
       id: "right-stairs",
       type: "stairs",
       x: mainRight + 1,
-      y: 4,
+      y: 28,
       width: rightShadeWidth - 2,
       height: 10,
       label: "Stairs",
     },
 
-    // ─── Top of hall — floor footprints (plan view) ────────────────
-    // Sound booth footprint, front-left inside hall
-    {
-      id: "sound-zone",
-      type: "sound-zone",
-      x: mainX + 2,
-      y: 2,
-      width: 8,
-      height: 6,
-      label: "Sound",
-    },
+    // ─── Bar + sound (plan footprints, top-right inside main hall) ─
     {
       id: "bar-zone",
       type: "bar-zone",
-      x: mainRight - 10,
+      x: mainRight - 12,
       y: 4,
-      width: 10,
-      height: 18,
+      width: 12,
+      height: 16,
       label: "Bar",
+    },
+    {
+      id: "sound-zone",
+      type: "sound-zone",
+      x: mainRight - 20,
+      y: 4,
+      width: 8,
+      height: 6,
+      label: "Sound",
     },
 
     // ─── Columns near entrance ─────────────────────────────────────
