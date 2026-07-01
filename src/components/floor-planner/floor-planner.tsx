@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { Stage, Layer, Rect, Group, Text, Line } from "react-konva";
 import type Konva from "konva";
 import { useEditorStore } from "@/stores/editor-store";
@@ -14,6 +14,8 @@ const ROOM_HEIGHT = TRS_LAYOUT.totalHeight;
 
 export function FloorPlanner() {
   const stageRef = useRef<Konva.Stage>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
   const {
     objects,
     selectedObjectId,
@@ -29,6 +31,8 @@ export function FloorPlanner() {
     deleteObject,
     pushHistory,
     venue,
+    setZoom,
+    platform,
   } = useEditorStore();
 
   const room = venue?.rooms[0];
@@ -36,7 +40,32 @@ export function FloorPlanner() {
   const roomHeight = room?.height ?? ROOM_HEIGHT;
   const stageWidth = roomWidth * PIXELS_PER_FOOT;
   const stageHeight = roomHeight * PIXELS_PER_FOOT;
+  const canvasWidth = stageWidth + 40;
+  const canvasHeight = stageHeight + 40;
   const unit = room?.unit ?? "ft";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const fitToView = () => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const padding = platform === "mobile" ? 16 : 32;
+      const availableW = container.clientWidth - padding;
+      const availableH = container.clientHeight - padding;
+      const fitZoom = Math.min(availableW / canvasWidth, availableH / canvasHeight) * 0.98;
+      setZoom(Math.max(0.12, Math.min(1, fitZoom)));
+    };
+
+    fitToView();
+    window.addEventListener("resize", fitToView);
+    return () => window.removeEventListener("resize", fitToView);
+  }, [mounted, canvasWidth, canvasHeight, platform, setZoom, room]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -83,6 +112,14 @@ export function FloorPlanner() {
     selectObject(null);
   };
 
+  if (!mounted) {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center bg-surface-200">
+        <p className="text-sm text-surface-500">Loading floor plan…</p>
+      </div>
+    );
+  }
+
   if (is3DMode) {
     return <Walkthrough3D roomWidth={roomWidth} roomHeight={roomHeight} objects={objects} />;
   }
@@ -92,7 +129,10 @@ export function FloorPlanner() {
   }
 
   return (
-    <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-surface-200">
+    <div
+      ref={containerRef}
+      className="relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden bg-surface-200"
+    >
       <div
         className="shadow-lg"
         style={{
@@ -102,8 +142,8 @@ export function FloorPlanner() {
       >
         <Stage
           ref={stageRef}
-          width={stageWidth + 40}
-          height={stageHeight + 40}
+          width={canvasWidth}
+          height={canvasHeight}
           onClick={(e) => {
             if (e.target === e.target.getStage()) handleStageClick();
           }}

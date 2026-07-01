@@ -1,13 +1,26 @@
 "use client";
 
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 import type { Platform } from "@/types";
 import { APP_SHELL_CONFIGS } from "@/types";
 import { useEditorStore } from "@/stores/editor-store";
 import { TopBar } from "./top-bar";
 import { SidePanel, BottomPanel } from "./side-panel";
-import { FloorPlanner } from "@/components/floor-planner/floor-planner";
 import { LiveUsersBar } from "./live-users-bar";
+
+const FloorPlanner = dynamic(
+  () =>
+    import("@/components/floor-planner/floor-planner").then((m) => m.FloorPlanner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex flex-1 items-center justify-center bg-surface-200">
+        <p className="text-sm text-surface-500">Loading floor plan…</p>
+      </div>
+    ),
+  }
+);
 
 interface AppShellProps {
   platform?: Platform;
@@ -23,18 +36,23 @@ function detectPlatform(): Platform {
 }
 
 export function AppShell({ platform: forcedPlatform, children }: AppShellProps) {
-  const { platform, setPlatform } = useEditorStore();
+  const { platform, setPlatform, setActivePanel } = useEditorStore();
 
   useEffect(() => {
     if (forcedPlatform) {
       setPlatform(forcedPlatform);
+      if (forcedPlatform === "mobile") setActivePanel(null);
       return;
     }
-    const update = () => setPlatform(detectPlatform());
+    const update = () => {
+      const detected = detectPlatform();
+      setPlatform(detected);
+      if (detected === "mobile") setActivePanel(null);
+    };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, [forcedPlatform, setPlatform]);
+  }, [forcedPlatform, setPlatform, setActivePanel]);
 
   const config = APP_SHELL_CONFIGS[platform];
 
@@ -45,9 +63,10 @@ export function AppShell({ platform: forcedPlatform, children }: AppShellProps) 
       <div className="flex flex-1 overflow-hidden">
         {config.showSidebar && config.platform !== "mobile" && <SidePanel />}
 
-        <main className="relative flex flex-1 flex-col overflow-hidden">
+        <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
           <LiveUsersBar />
-          {children ?? <FloorPlanner />}
+          <FloorPlanner />
+          {children}
         </main>
       </div>
 
