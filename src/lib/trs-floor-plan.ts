@@ -1,5 +1,5 @@
 import type { TrsFloorSpecs } from "./trs-inventory";
-import { TRS_MAIN_FLOOR } from "./trs-inventory";
+import { TRS_FLOOR_MEASUREMENTS, TRS_MAIN_FLOOR } from "./trs-inventory";
 
 export type FloorPlanElementType =
   | "stage-zone"
@@ -39,28 +39,27 @@ export interface FloorPlanElement {
 /**
  * TRS Performance Venue — PLAN VIEW (looking straight down at the floor).
  *
- * All x/y/width/height values are horizontal footprints on the floor plane.
- * This is not an elevation or "facing into the room" perspective.
+ * Entering from main doors at the top of the plan, facing into the hall:
+ *   LEFT WALL  (west)  — 90 ft: cleaning closet → back wall / stage
+ *   RIGHT WALL (east)  — 84 ft: bar area → greenroom door
+ *   Room width         — 35 ft between those walls
  *
- * Coordinate system (feet, top-down on screen):
- *   x → east on the plan (screen right)
- *   y → south on the plan (screen down)
- *
- * Main entrance is on the north edge (top of screen). Walking in from there:
- *   LEFT WALL  = west edge  (90 ft: cleaning closet → back wall / stage)
- *   RIGHT WALL = east edge  (84 ft: bar → greenroom door)
- *   Toward stage = south (+y) on the plan
+ * Left wing (outside main hall): bar, sound, restrooms, cleaning closet
+ * Main hall: open performance floor + stage at back (south on plan)
+ * Bottom wall: bay door + load-in ramp (per CAD)
  */
 export const TRS_LAYOUT = {
-  leftWingWidth: 12,
+  leftWingWidth: 20,
   corridorWidth: 2,
-  /** Main performance floor width (user measurement) */
-  mainWidth: 35,
+  mainWidth: TRS_FLOOR_MEASUREMENTS.roomWidth,
   rightShadeWidth: 10,
-  videoWall: { width: 20, height: 10 },
+  videoWall: {
+    width: TRS_FLOOR_MEASUREMENTS.videoWallWidth,
+    height: TRS_FLOOR_MEASUREMENTS.videoWallHeight,
+  },
   stageDepth: 8,
-  /** Load-in ramp protrudes left of the main hall wall */
-  rampProtrusion: 11,
+  barSoundSpan: TRS_FLOOR_MEASUREMENTS.barSoundSpan,
+  soundDepth: TRS_FLOOR_MEASUREMENTS.soundDepth,
 
   get mainX(): number {
     return this.leftWingWidth + this.corridorWidth;
@@ -105,7 +104,6 @@ export function getTrsRoomGeometry(
   };
 }
 
-/** Full building outline including left wing and right utility block */
 export function getVenueOutlinePoints(
   specs: TrsFloorSpecs = TRS_MAIN_FLOOR
 ): number[] {
@@ -121,7 +119,6 @@ export function getVenueOutlinePoints(
   ];
 }
 
-/** Main hall performance floor — trapezoid (90 ft left, 84 ft right) */
 export function getPerformanceFloorPoints(
   specs: TrsFloorSpecs = TRS_MAIN_FLOOR
 ): number[] {
@@ -134,14 +131,14 @@ export function getPerformanceFloorPoints(
   ];
 }
 
-/** Usable bounds for placing movable furniture inside the main hall */
+/** Movable furniture bounds — main hall only, clear of stage */
 export function getHallBounds(specs: TrsFloorSpecs = TRS_MAIN_FLOOR) {
   const { mainX, mainRight } = TRS_LAYOUT;
   const margin = 2;
   return {
     minX: mainX + margin,
     maxX: mainRight - margin,
-    minY: 22,
+    minY: 16,
     maxY: specs.lengthLeft - specs.stageOffsetBack - TRS_LAYOUT.stageDepth - margin,
   };
 }
@@ -158,72 +155,95 @@ export function buildTrsFloorPlan(
     videoWall,
     stageDepth,
     rightShadeWidth,
-    rampProtrusion,
+    barSoundSpan,
+    soundDepth,
   } = TRS_LAYOUT;
 
   const bottomLeftY = specs.lengthLeft;
   const bottomRightY = specs.lengthRight;
 
-  // Stage at back wall (bottom) — 3 ft from wall, 3'6" from sides
   const stageY = bottomLeftY - specs.stageOffsetBack - stageDepth;
   const stageX = mainX + specs.stageOffsetSide;
   const stageW = mainWidth - specs.stageOffsetSide * 2;
   const videoY = stageY - videoWall.height;
   const videoX = mainX + (mainWidth - videoWall.width) / 2;
 
-  // Bay door on LEFT wall — load-in mid-hall per annotated drawing
-  const rollerY = 36;
-  const rampX = mainX - rampProtrusion;
-  const rampY = rollerY;
+  // Bay door + ramp on bottom wall (CAD) — ramp footprint inside hall
+  const bayX = mainX + mainWidth / 2 - specs.bayDoorWidth / 2;
+  const rampX = bayX + (specs.bayDoorWidth - specs.rampWidth) / 2;
+  const rampY = bottomLeftY - specs.rampDepth;
+
+  const barWidth = barSoundSpan - soundDepth;
 
   return [
-    // ─── Left wing (outside main hall): cleaning closet + stairs ───
+    // ─── Left wing (outside main hall) — per CAD top-left cluster ──
     {
       id: "cleaning-closet",
       type: "shaded-zone",
       x: 0,
       y: 2,
-      width: leftWingWidth,
-      height: 8,
+      width: 8,
+      height: 6,
       label: "Cleaning Closet",
+    },
+    {
+      id: "sound-zone",
+      type: "sound-zone",
+      x: 0,
+      y: 10,
+      width: soundDepth,
+      height: soundDepth,
+      label: "Sound (6 ft)",
+    },
+    {
+      id: "bar-zone",
+      type: "bar-zone",
+      x: soundDepth,
+      y: 8,
+      width: barWidth,
+      height: 10,
+      label: "Bar",
+    },
+    {
+      id: "bar-leg",
+      type: "bar-zone",
+      x: 0,
+      y: 18,
+      width: 10,
+      height: 8,
+      label: "",
+    },
+    {
+      id: "restrooms",
+      type: "restroom",
+      x: 0,
+      y: 28,
+      width: leftWingWidth,
+      height: 22,
+      label: "Restrooms",
     },
     {
       id: "wing-stairs",
       type: "stairs",
       x: 1,
-      y: 14,
+      y: 52,
       width: leftWingWidth - 2,
-      height: 16,
+      height: 14,
       label: "UP 14 TREADS",
     },
-
-    // ─── Main entrance (top center of hall) ────────────────────────
-    {
-      id: "top-double-doors",
-      type: "door",
-      x: mainX + mainWidth / 2 - specs.doubleExitWidth / 2,
-      y: -0.5,
-      width: specs.doubleExitWidth,
-      height: 1,
-      label: "Main Entrance (6 ft)",
-      wall: "top",
-      doorKind: "top",
-    },
-
-    // ─── Side vestibule off left wing (auxiliary entry) ─────────────
     {
       id: "vestibule",
       type: "door",
-      x: 0,
+      x: 8,
       y: 0,
-      width: leftWingWidth,
+      width: leftWingWidth - 8,
       height: 2,
       label: "Vestibule",
       wall: "top",
       doorKind: "vestibule",
     },
 
-    // ─── Corridor between wing and main hall ───────────────────────
+    // ─── Corridor between left wing and main hall ──────────────────
     {
       id: "corridor",
       type: "corridor",
@@ -237,7 +257,7 @@ export function buildTrsFloorPlan(
       id: "corridor-door-top",
       type: "door",
       x: leftWingWidth + corridorWidth - 0.5,
-      y: 8,
+      y: 10,
       width: 1,
       height: specs.doubleExitWidth,
       label: "Double Doors (6 ft)",
@@ -256,139 +276,37 @@ export function buildTrsFloorPlan(
       doorKind: "service",
     },
 
-    // ─── Right wing (outside main hall): restrooms + greenroom ─────
+    // ─── Main entrance — top center of hall (6 ft double doors) ────
     {
-      id: "restrooms",
-      type: "restroom",
-      x: mainRight + 1,
-      y: 2,
-      width: rightShadeWidth - 2,
-      height: 20,
-      label: "Restrooms",
-    },
-    {
-      id: "restroom-door",
+      id: "top-double-doors",
       type: "door",
-      x: mainRight - 0.5,
-      y: 8,
-      width: 1,
-      height: 4,
-      label: "Restrooms",
-      wall: "right",
-      doorKind: "service",
+      x: mainX + mainWidth / 2 - specs.doubleExitWidth / 2,
+      y: -0.5,
+      width: specs.doubleExitWidth,
+      height: 1,
+      label: "Main Entrance (6 ft)",
+      wall: "top",
+      doorKind: "top",
     },
+
+    // ─── Right wing (outside main hall) — greenroom / utility ──────
     {
       id: "right-shade",
       type: "shaded-zone",
       x: mainRight,
-      y: 24,
+      y: 0,
       width: rightShadeWidth,
-      height: bottomRightY - 24,
+      height: bottomRightY,
       label: "Greenroom / Utility",
     },
     {
       id: "right-stairs",
       type: "stairs",
       x: mainRight + 1,
-      y: 28,
+      y: 4,
       width: rightShadeWidth - 2,
       height: 10,
-      label: "Stairs",
-    },
-
-    // ─── Bar + sound (plan footprints, top-right inside main hall) ─
-    {
-      id: "bar-zone",
-      type: "bar-zone",
-      x: mainRight - 12,
-      y: 4,
-      width: 12,
-      height: 16,
-      label: "Bar",
-    },
-    {
-      id: "sound-zone",
-      type: "sound-zone",
-      x: mainRight - 20,
-      y: 4,
-      width: 8,
-      height: 6,
-      label: "Sound",
-    },
-
-    // ─── Columns near entrance ─────────────────────────────────────
-    {
-      id: "column-1",
-      type: "column",
-      x: mainX + 5,
-      y: 14,
-      width: 2,
-      height: 2,
-      label: "",
-    },
-    {
-      id: "column-2",
-      type: "column",
-      x: mainX + mainWidth / 2 - 1,
-      y: 14,
-      width: 2,
-      height: 2,
-      label: "",
-    },
-    {
-      id: "column-3",
-      type: "column",
-      x: mainRight - 7,
-      y: 14,
-      width: 2,
-      height: 2,
-      label: "",
-    },
-
-    // ─── Bay door + ramp on YOUR LEFT wall (load-in) ───────────────
-    {
-      id: "roller-door",
-      type: "door",
-      x: mainX - 0.5,
-      y: rollerY,
-      width: 1,
-      height: specs.bayDoorWidth,
-      label: "Bay Door (12 ft)",
-      wall: "left",
-      doorKind: "roller",
-    },
-    {
-      id: "load-ramp",
-      type: "ramp",
-      x: rampX,
-      y: rampY,
-      width: specs.rampWidth,
-      height: specs.rampDepth,
-      label: "Ramp (11 × 13 ft)",
-    },
-
-    // ─── Exits (your right wall + back corners) ────────────────────
-    {
-      id: "exit-right-top",
-      type: "door",
-      x: mainRight - 0.5,
-      y: 12,
-      width: 1,
-      height: specs.doubleExitWidth,
-      label: "Exit (6 ft)",
-      wall: "right",
-      doorKind: "double",
-    },
-    {
-      id: "exit-left-stage",
-      type: "door",
-      x: mainX - 0.5,
-      y: bottomLeftY - 12,
-      width: 1,
-      height: specs.emergencyExitWidth,
-      label: "Emergency Exit (4 ft)",
-      wall: "left",
-      doorKind: "exit",
+      label: "Exit Stairs",
     },
     {
       id: "greenroom-door",
@@ -402,13 +320,77 @@ export function buildTrsFloorPlan(
       doorKind: "greenroom",
     },
     {
-      id: "bottom-stairs",
-      type: "stairs",
-      x: mainX + mainWidth - 14,
-      y: bottomRightY - 8,
-      width: 10,
-      height: 6,
-      label: "Exit Stairs",
+      id: "exit-right-top",
+      type: "door",
+      x: mainRight - 0.5,
+      y: 12,
+      width: 1,
+      height: specs.doubleExitWidth,
+      label: "Exit (6 ft)",
+      wall: "right",
+      doorKind: "double",
+    },
+
+    // ─── Columns near entrance (CAD dashed) ────────────────────────
+    {
+      id: "column-1",
+      type: "column",
+      x: mainX + 5,
+      y: 12,
+      width: 2,
+      height: 2,
+      label: "",
+    },
+    {
+      id: "column-2",
+      type: "column",
+      x: mainX + mainWidth / 2 - 1,
+      y: 12,
+      width: 2,
+      height: 2,
+      label: "",
+    },
+    {
+      id: "column-3",
+      type: "column",
+      x: mainRight - 7,
+      y: 12,
+      width: 2,
+      height: 2,
+      label: "",
+    },
+
+    // ─── Bay door + ramp on bottom wall (CAD) ──────────────────────
+    {
+      id: "bay-door",
+      type: "door",
+      x: bayX,
+      y: bottomLeftY - 0.5,
+      width: specs.bayDoorWidth,
+      height: 1,
+      label: "Bay Door (12 ft)",
+      wall: "bottom",
+      doorKind: "roller",
+    },
+    {
+      id: "load-ramp",
+      type: "ramp",
+      x: rampX,
+      y: rampY,
+      width: specs.rampWidth,
+      height: specs.rampDepth,
+      label: "Ramp (11 × 13 ft)",
+    },
+    {
+      id: "exit-left-stage",
+      type: "door",
+      x: mainX - 0.5,
+      y: bottomLeftY - 12,
+      width: 1,
+      height: specs.emergencyExitWidth,
+      label: "Emergency Exit (4 ft)",
+      wall: "left",
+      doorKind: "exit",
     },
     {
       id: "bottom-exit",
@@ -422,7 +404,7 @@ export function buildTrsFloorPlan(
       doorKind: "double",
     },
 
-    // ─── Stage + video wall at back wall (bottom) ──────────────────
+    // ─── Stage + video wall at back wall ───────────────────────────
     {
       id: "video-wall",
       type: "video-wall",
@@ -447,7 +429,7 @@ export function buildTrsFloorPlan(
       id: "label-performance",
       type: "label",
       x: mainX + 3,
-      y: 26,
+      y: 30,
       width: 30,
       height: 4,
       label: "PERFORMANCE VENUE · 620+ standing / 350 seated",
@@ -456,7 +438,7 @@ export function buildTrsFloorPlan(
       id: "label-rink-floor",
       type: "label",
       x: mainX + 3,
-      y: 32,
+      y: 36,
       width: 30,
       height: 3,
       label: "Original 1926 Roller Skating Rink Floor",

@@ -20,7 +20,7 @@ export const DEMO_VENUE: VenueData = {
       height: TRS_LAYOUT.totalHeight,
       capacity: 620,
       unit: TRS_UNIT,
-      notes: `Plan view · ${TRS_MAIN_FLOOR.width}×${TRS_MAIN_FLOOR.lengthLeft} ft hall · L wall 90 ft · R wall 84 ft (entering from top)`,
+      notes: `Plan view · ${TRS_MAIN_FLOOR.width}×${TRS_MAIN_FLOOR.lengthLeft} ft hall · L wall 90 ft · R wall 84 ft`,
     },
   ],
 };

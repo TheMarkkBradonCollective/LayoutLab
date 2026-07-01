@@ -83,7 +83,7 @@ export function ItemsPanel() {
               {item.name}
             </span>
             <span className="text-[9px] text-surface-400">
-              {formatDim(item.width)} × {formatDim(item.height)} ft
+              {item.notes ?? `${formatDim(item.width)} × ${formatDim(item.height)} ft`}
             </span>
             <span className="text-[9px] font-medium text-venue-600">
               Qty {item.quantity}

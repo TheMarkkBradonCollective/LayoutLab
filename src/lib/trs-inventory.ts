@@ -4,6 +4,24 @@ import type { ItemCategory } from "@/types";
 export const TRS_UNIT = "ft" as const;
 export const PIXELS_PER_FOOT = 8;
 
+/** Official TRS floor measurements (plan view, entering from main doors at top). */
+export const TRS_FLOOR_MEASUREMENTS = {
+  roomWidth: 35,
+  leftWallLength: 90, // cleaning closet → back wall / stage
+  rightWallLength: 84, // bar area → greenroom door
+  bayDoorWidth: 12,
+  rampWidth: 11,
+  rampDepth: 13,
+  emergencyExitWidth: 4,
+  doubleExitWidth: 6,
+  stageOffsetBack: 3,
+  stageOffsetSide: 3.5, // 3 ft 6 in
+  barSoundSpan: 24,
+  soundDepth: 6,
+  videoWallWidth: 20,
+  videoWallHeight: 10,
+} as const;
+
 export interface TrsFloorSpecs {
   width: number;
   lengthLeft: number;
@@ -18,16 +36,16 @@ export interface TrsFloorSpecs {
 }
 
 export const TRS_MAIN_FLOOR: TrsFloorSpecs = {
-  width: 35,
-  lengthLeft: 90,  // left wall on plan (west): cleaning closet → stage
-  lengthRight: 84, // right wall on plan (east): bar → greenroom door
-  bayDoorWidth: 12,
-  rampWidth: 11,
-  rampDepth: 13,
-  emergencyExitWidth: 4,
-  doubleExitWidth: 6,
-  stageOffsetBack: 3,
-  stageOffsetSide: 3.6,
+  width: TRS_FLOOR_MEASUREMENTS.roomWidth,
+  lengthLeft: TRS_FLOOR_MEASUREMENTS.leftWallLength,
+  lengthRight: TRS_FLOOR_MEASUREMENTS.rightWallLength,
+  bayDoorWidth: TRS_FLOOR_MEASUREMENTS.bayDoorWidth,
+  rampWidth: TRS_FLOOR_MEASUREMENTS.rampWidth,
+  rampDepth: TRS_FLOOR_MEASUREMENTS.rampDepth,
+  emergencyExitWidth: TRS_FLOOR_MEASUREMENTS.emergencyExitWidth,
+  doubleExitWidth: TRS_FLOOR_MEASUREMENTS.doubleExitWidth,
+  stageOffsetBack: TRS_FLOOR_MEASUREMENTS.stageOffsetBack,
+  stageOffsetSide: TRS_FLOOR_MEASUREMENTS.stageOffsetSide,
 };
 
 export interface TrsFurnitureItem {
@@ -40,11 +58,15 @@ export interface TrsFurnitureItem {
   color: string;
   shape: "circle" | "rectangle";
   capacity?: number;
+  notes?: string;
 }
 
-/** Complete TRS furniture inventory — dimensions in feet. */
+/**
+ * Complete TRS furniture inventory — official asset list.
+ * Rectangles: width × height in feet. Circles: diameter stored as width & height.
+ */
 export const TRS_FURNITURE: TrsFurnitureItem[] = [
-  // Tables
+  // Tables — cocktail
   {
     id: "cocktail-short",
     name: "Short Round Cocktail Table",
@@ -54,6 +76,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 21,
     color: "#A0826D",
     shape: "circle",
+    notes: "2 ft diameter",
   },
   {
     id: "cocktail-tall",
@@ -64,7 +87,9 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 8,
     color: "#8B7355",
     shape: "circle",
+    notes: "2 ft diameter",
   },
+  // Tables — merch
   {
     id: "merch-8ft",
     name: "Merch Table (8 ft)",
@@ -74,6 +99,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 8,
     color: "#6B7280",
     shape: "rectangle",
+    notes: "8 ft L × 2 ft 6 in W",
   },
   {
     id: "merch-6ft",
@@ -84,6 +110,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 3,
     color: "#6B7280",
     shape: "rectangle",
+    notes: "6 ft L × 2 ft 6 in W",
   },
   {
     id: "merch-6ft-narrow",
@@ -94,6 +121,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 5,
     color: "#78716C",
     shape: "rectangle",
+    notes: "6 ft L × 1 ft 6 in W",
   },
   {
     id: "merch-5ft",
@@ -104,9 +132,9 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 2,
     color: "#78716C",
     shape: "rectangle",
+    notes: "5 ft L × 2 ft 6 in W",
   },
-
-  // Seating
+  // Seating — stools
   {
     id: "stool-tall-square",
     name: "Tall Square Stool",
@@ -116,6 +144,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 11,
     color: "#4A5568",
     shape: "rectangle",
+    notes: "1 ft × 1 ft",
   },
   {
     id: "stool-tall-round",
@@ -126,6 +155,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 20,
     color: "#4A5568",
     shape: "circle",
+    notes: "14 in diameter",
   },
   {
     id: "stool-small-round",
@@ -136,7 +166,9 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 21,
     color: "#718096",
     shape: "circle",
+    notes: "1 ft 4 in diameter",
   },
+  // Seating — chairs & benches
   {
     id: "chair-gray",
     name: "Gray Chair",
@@ -147,6 +179,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     color: "#9CA3AF",
     shape: "rectangle",
     capacity: 1,
+    notes: "1 ft 8 in W × 1 ft 6 in L",
   },
   {
     id: "bench-ada",
@@ -158,7 +191,9 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     color: "#2563EB",
     shape: "rectangle",
     capacity: 4,
+    notes: "12 ft L × 2 ft W",
   },
+  // Seating — couches & ottomans
   {
     id: "couch-small",
     name: "Small Couch",
@@ -169,6 +204,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     color: "#6366F1",
     shape: "rectangle",
     capacity: 3,
+    notes: "4 ft L × 2 ft 6 in W",
   },
   {
     id: "couch-curved-silver",
@@ -180,6 +216,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     color: "#C0C0C0",
     shape: "rectangle",
     capacity: 4,
+    notes: "5 ft 6 in L × 3 ft W",
   },
   {
     id: "ottoman-curved-leather",
@@ -191,6 +228,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     color: "#92400E",
     shape: "rectangle",
     capacity: 3,
+    notes: "6 ft L × 2 ft 6 in W",
   },
   {
     id: "couch-white-leather",
@@ -202,6 +240,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     color: "#F3F4F6",
     shape: "rectangle",
     capacity: 4,
+    notes: "8 ft L × 2 ft 6 in W",
   },
   {
     id: "couch-green",
@@ -213,8 +252,8 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     color: "#166534",
     shape: "rectangle",
     capacity: 3,
+    notes: "6 ft L × 2 ft 6 in W",
   },
-
   // Equipment
   {
     id: "stage-platform",
@@ -225,6 +264,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 15,
     color: "#1E293B",
     shape: "rectangle",
+    notes: "8 ft L × 4 ft W",
   },
   {
     id: "stanchion-round",
@@ -235,6 +275,7 @@ export const TRS_FURNITURE: TrsFurnitureItem[] = [
     quantity: 8,
     color: "#D4D4D8",
     shape: "circle",
+    notes: "1 ft diameter",
   },
 ];
 
@@ -250,4 +291,9 @@ export function getStageArea(specs: TrsFloorSpecs = TRS_MAIN_FLOOR) {
 export const TRS_INVENTORY_SUMMARY = {
   totalFurniturePieces: TRS_FURNITURE.reduce((sum, item) => sum + item.quantity, 0),
   itemTypes: TRS_FURNITURE.length,
+  byCategory: {
+    TABLES: TRS_FURNITURE.filter((i) => i.category === "TABLES").reduce((s, i) => s + i.quantity, 0),
+    SEATING: TRS_FURNITURE.filter((i) => i.category === "SEATING").reduce((s, i) => s + i.quantity, 0),
+    EQUIPMENT: TRS_FURNITURE.filter((i) => i.category === "EQUIPMENT").reduce((s, i) => s + i.quantity, 0),
+  },
 };
