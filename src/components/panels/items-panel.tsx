@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TRS_FURNITURE } from "@/lib/trs-inventory";
-import { TRS_LAYOUT, getPerformanceFloorOffset } from "@/lib/trs-floor-plan";
+import { TRS_LAYOUT } from "@/lib/trs-floor-plan";
 import type { ItemCategory } from "@/types";
 import { useEditorStore } from "@/stores/editor-store";
 import { cn } from "@/lib/utils";
@@ -20,9 +20,8 @@ export function ItemsPanel() {
   const items = TRS_FURNITURE.filter((item) => item.category === category);
 
   const handleAdd = (item: (typeof TRS_FURNITURE)[0]) => {
-    const room = venue?.rooms[0];
-    const centerX = room ? TRS_LAYOUT.leftWingWidth + 8 : 14;
-    const centerY = room ? getPerformanceFloorOffset() + 30 : 50;
+    const centerX = TRS_LAYOUT.mainX + 8;
+    const centerY = 40;
 
     addObject({
       itemName: item.name,

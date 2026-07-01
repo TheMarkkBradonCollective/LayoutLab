@@ -44,17 +44,16 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
         strokeWidth={1}
       />
 
-      {/* Left wing divider */}
+      {/* Corridor between wing and main hall */}
       <Line
         points={scalePoints([
-          TRS_LAYOUT.leftWingWidth,
+          TRS_LAYOUT.leftWingWidth + TRS_LAYOUT.corridorWidth,
           0,
-          TRS_LAYOUT.leftWingWidth,
+          TRS_LAYOUT.leftWingWidth + TRS_LAYOUT.corridorWidth,
           TRS_LAYOUT.totalHeight,
         ])}
         stroke="#d6d3d1"
-        strokeWidth={1.5}
-        dash={[4, 4]}
+        strokeWidth={1}
       />
 
       {elements.map((el) => (
@@ -68,31 +67,31 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
 
       {/* Dimension annotations */}
       <Text
-        x={offsetX + px(TRS_LAYOUT.leftWingWidth + TRS_LAYOUT.mainWidth / 2) - 14}
+        x={offsetX + px(TRS_LAYOUT.mainX + TRS_LAYOUT.mainWidth / 2) - 14}
         y={offsetY - 14}
-        text="ENTRANCE"
+        text="ENTRANCE / TOP"
         fontSize={8}
         fill="#a8a29e"
         fontStyle="bold"
       />
       <Text
         x={offsetX - 58}
-        y={offsetY + px(60)}
+        y={offsetY + px(50)}
         text="LEFT 90 ft"
         fontSize={8}
         fill="#a8a29e"
         rotation={-90}
       />
       <Text
-        x={offsetX + px(TRS_LAYOUT.leftWingWidth + TRS_LAYOUT.mainWidth) + 6}
-        y={offsetY + px(58)}
+        x={offsetX + px(TRS_LAYOUT.mainRight) + 6}
+        y={offsetY + px(48)}
         text="RIGHT 84 ft"
         fontSize={8}
         fill="#a8a29e"
         rotation={90}
       />
       <Text
-        x={offsetX + px(TRS_LAYOUT.leftWingWidth + TRS_LAYOUT.mainWidth / 2) - 10}
+        x={offsetX + px(TRS_LAYOUT.mainX + TRS_LAYOUT.mainWidth / 2) - 10}
         y={offsetY + px(TRS_LAYOUT.totalHeight) + 8}
         text="STAGE"
         fontSize={8}
@@ -100,9 +99,9 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
         fontStyle="bold"
       />
       <Text
-        x={offsetX + px(TRS_LAYOUT.totalWidth / 2) - 8}
+        x={offsetX + px(TRS_LAYOUT.totalWidth / 2) - 12}
         y={offsetY + px(TRS_LAYOUT.totalHeight) + 20}
-        text={`${TRS_LAYOUT.totalWidth} ft`}
+        text={`${TRS_LAYOUT.mainWidth} ft wide`}
         fontSize={9}
         fill="#a8a29e"
       />
@@ -167,7 +166,19 @@ function FloorPlanElementShape({
       );
 
     case "shaded-zone":
-      return <Rect x={x} y={y} width={w} height={h} fill="#78716c" opacity={0.2} />;
+      return (
+        <Group>
+          <Rect x={x} y={y} width={w} height={h} fill="#78716c" opacity={0.22} />
+          {element.label && (
+            <Text x={x + 2} y={y + 4} width={w - 4} text={element.label} fontSize={7} fill="#57534e" />
+          )}
+        </Group>
+      );
+
+    case "corridor":
+      return (
+        <Rect x={x} y={y} width={w} height={h} fill="#78716c" opacity={0.12} stroke="#a8a29e" strokeWidth={0.5} />
+      );
 
     case "stairs":
       return (

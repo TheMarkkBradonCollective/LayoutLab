@@ -1,10 +1,8 @@
 import type { VenueData, LayoutData, FloorObject, LiveUser } from "@/types";
 import { TRS_MAIN_FLOOR, TRS_UNIT } from "@/lib/trs-inventory";
-import { TRS_LAYOUT, getPerformanceFloorOffset } from "@/lib/trs-floor-plan";
+import { TRS_LAYOUT } from "@/lib/trs-floor-plan";
 
 export const TRS_VENUE_ID = "venue-the-rink-studios";
-
-const FLOOR_Y = getPerformanceFloorOffset();
 
 export const DEMO_VENUE: VenueData = {
   id: TRS_VENUE_ID,
@@ -20,20 +18,22 @@ export const DEMO_VENUE: VenueData = {
       height: TRS_LAYOUT.totalHeight,
       capacity: 620,
       unit: TRS_UNIT,
-      notes: `Performance floor ${TRS_MAIN_FLOOR.width}×${TRS_MAIN_FLOOR.lengthLeft} ft · 350 seated`,
+      notes: `Main hall ${TRS_MAIN_FLOOR.width}×${TRS_MAIN_FLOOR.lengthLeft} ft · Left 90 ft · Right 84 ft`,
     },
   ],
 };
 
-/** Movable furniture only — architecture is on the floor plan layer. */
+const MX = TRS_LAYOUT.mainX;
+
+/** Movable furniture — placed on the main performance hall only. */
 export const DEMO_EVENT_OBJECTS: FloorObject[] = [
   {
     id: "obj-merch-1",
     itemName: "Merch Table (8 ft)",
     itemType: "merch-8ft",
     category: "TABLES",
-    x: 14,
-    y: FLOOR_Y + 30,
+    x: MX + 4,
+    y: 30,
     width: 8,
     height: 2.5,
     rotation: 0,
@@ -45,8 +45,8 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemName: "Merch Table (8 ft)",
     itemType: "merch-8ft",
     category: "TABLES",
-    x: 24,
-    y: FLOOR_Y + 30,
+    x: MX + 16,
+    y: 30,
     width: 8,
     height: 2.5,
     rotation: 0,
@@ -58,8 +58,8 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemName: "Tall Round Cocktail Table",
     itemType: "cocktail-tall",
     category: "TABLES",
-    x: 16,
-    y: FLOOR_Y + 45,
+    x: MX + 8,
+    y: 45,
     width: 2,
     height: 2,
     rotation: 0,
@@ -71,8 +71,8 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemName: "Short Round Cocktail Table",
     itemType: "cocktail-short",
     category: "TABLES",
-    x: 20,
-    y: FLOOR_Y + 45,
+    x: MX + 12,
+    y: 45,
     width: 2,
     height: 2,
     rotation: 0,
@@ -84,8 +84,8 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemName: "Green Couch",
     itemType: "couch-green",
     category: "SEATING",
-    x: 30,
-    y: FLOOR_Y + 55,
+    x: MX + 20,
+    y: 55,
     width: 6,
     height: 2.5,
     rotation: 0,
@@ -94,26 +94,12 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     capacity: 3,
   },
   {
-    id: "obj-couch-white",
-    itemName: "White Leather Couch",
-    itemType: "couch-white-leather",
-    category: "SEATING",
-    x: 30,
-    y: FLOOR_Y + 60,
-    width: 8,
-    height: 2.5,
-    rotation: 0,
-    locked: false,
-    color: "#F3F4F6",
-    capacity: 4,
-  },
-  {
     id: "obj-stanchion-1",
     itemName: "Round Stanchion",
     itemType: "stanchion-round",
     category: "EQUIPMENT",
-    x: 13,
-    y: FLOOR_Y + 15,
+    x: MX + 3,
+    y: 20,
     width: 1,
     height: 1,
     rotation: 0,
@@ -125,8 +111,8 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemName: "Round Stanchion",
     itemType: "stanchion-round",
     category: "EQUIPMENT",
-    x: 41,
-    y: FLOOR_Y + 15,
+    x: MX + 30,
+    y: 20,
     width: 1,
     height: 1,
     rotation: 0,

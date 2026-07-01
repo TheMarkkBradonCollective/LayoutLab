@@ -19,8 +19,8 @@ export interface TrsFloorSpecs {
 
 export const TRS_MAIN_FLOOR: TrsFloorSpecs = {
   width: 35,
-  lengthLeft: 90,
-  lengthRight: 84,
+  lengthLeft: 90,  // cleaning closet → back wall (left wall)
+  lengthRight: 84, // bar → greenroom door (right wall)
   bayDoorWidth: 12,
   rampWidth: 11,
   rampDepth: 13,
