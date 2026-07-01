@@ -90,8 +90,8 @@ export function ToolsPanel() {
           </div>
 
           <div className="mt-3 space-y-1 text-[10px] text-surface-500">
-            <div>Position: {selected.x.toFixed(1)}m, {selected.y.toFixed(1)}m</div>
-            <div>Size: {selected.width}m × {selected.height}m</div>
+            <div>Position: {selected.x.toFixed(1)} ft, {selected.y.toFixed(1)} ft</div>
+            <div>Size: {selected.width} ft × {selected.height} ft</div>
             <div>Rotation: {selected.rotation}°</div>
           </div>
         </>

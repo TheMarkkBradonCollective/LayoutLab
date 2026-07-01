@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { DEFAULT_FURNITURE, type ItemCategory } from "@/types";
+import { TRS_FURNITURE } from "@/lib/trs-inventory";
+import type { ItemCategory } from "@/types";
 import { useEditorStore } from "@/stores/editor-store";
 import { cn } from "@/lib/utils";
 
@@ -9,26 +10,26 @@ const CATEGORIES: { key: ItemCategory; label: string }[] = [
   { key: "TABLES", label: "Tables" },
   { key: "SEATING", label: "Seating" },
   { key: "EQUIPMENT", label: "Equipment" },
-  { key: "DECOR", label: "Decor" },
+  { key: "DECOR", label: "Fixtures" },
 ];
 
 export function ItemsPanel() {
   const [category, setCategory] = useState<ItemCategory>("TABLES");
   const { addObject, venue } = useEditorStore();
 
-  const items = DEFAULT_FURNITURE.filter((item) => item.category === category);
+  const items = TRS_FURNITURE.filter((item) => item.category === category);
 
-  const handleAdd = (item: (typeof DEFAULT_FURNITURE)[0]) => {
+  const handleAdd = (item: (typeof TRS_FURNITURE)[0]) => {
     const room = venue?.rooms[0];
-    const centerX = room ? (room.width - item.width) / 2 : 5;
-    const centerY = room ? (room.height - item.height) / 2 : 5;
+    const centerX = room ? (room.width - item.width) / 2 : 10;
+    const centerY = room ? (room.height - item.height) / 2 : 20;
 
     addObject({
       itemName: item.name,
       itemType: item.id,
       category: item.category,
-      x: centerX + (Math.random() - 0.5) * 2,
-      y: centerY + (Math.random() - 0.5) * 2,
+      x: centerX + (Math.random() - 0.5) * 4,
+      y: centerY + (Math.random() - 0.5) * 4,
       width: item.width,
       height: item.height,
       rotation: 0,
@@ -40,6 +41,12 @@ export function ItemsPanel() {
 
   return (
     <div className="flex flex-col">
+      <div className="border-b border-surface-100 px-3 py-2">
+        <p className="text-[10px] text-surface-500">
+          TRS inventory · dimensions in feet
+        </p>
+      </div>
+
       <div className="flex gap-1 border-b border-surface-100 p-2">
         {CATEGORIES.map((cat) => (
           <button
@@ -68,7 +75,8 @@ export function ItemsPanel() {
               className="flex h-10 w-10 items-center justify-center rounded-md text-[8px] font-bold text-white"
               style={{
                 backgroundColor: item.color,
-                borderRadius: item.icon === "circle" ? "50%" : "4px",
+                borderRadius: item.shape === "circle" ? "50%" : "4px",
+                color: item.color === "#F3F4F6" ? "#374151" : "white",
               }}
             >
               {item.name.split(" ")[0]}
@@ -76,12 +84,23 @@ export function ItemsPanel() {
             <span className="text-center text-[10px] leading-tight text-surface-700">
               {item.name}
             </span>
-            {item.capacity && (
-              <span className="text-[9px] text-surface-400">Seats {item.capacity}</span>
-            )}
+            <span className="text-[9px] text-surface-400">
+              {formatDim(item.width)} × {formatDim(item.height)} ft
+            </span>
+            <span className="text-[9px] font-medium text-venue-600">
+              Qty {item.quantity}
+            </span>
           </button>
         ))}
       </div>
     </div>
   );
+}
+
+function formatDim(value: number): string {
+  const inches = Math.round(value * 12);
+  if (inches % 12 === 0) return String(inches / 12);
+  const ft = Math.floor(inches / 12);
+  const rem = inches % 12;
+  return ft > 0 ? `${ft}'${rem}"` : `${rem}"`;
 }

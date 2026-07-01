@@ -33,30 +33,14 @@ export interface FurnitureTemplate {
   width: number;
   height: number;
   depth: number;
+  quantity?: number;
   capacity?: number;
   color: string;
   icon: string;
 }
 
-export const DEFAULT_FURNITURE: FurnitureTemplate[] = [
-  // Tables
-  { id: "round-table-60", name: "Round Table (60\")", category: "TABLES", width: 1.5, height: 1.5, depth: 0.75, capacity: 8, color: "#8B7355", icon: "circle" },
-  { id: "round-table-72", name: "Round Table (72\")", category: "TABLES", width: 1.8, height: 1.8, depth: 0.75, capacity: 10, color: "#8B7355", icon: "circle" },
-  { id: "rect-table-8", name: "Rectangle Table (8ft)", category: "TABLES", width: 2.4, height: 0.9, depth: 0.75, capacity: 8, color: "#A0826D", icon: "rectangle" },
-  { id: "cocktail-table", name: "Cocktail Table", category: "TABLES", width: 0.6, height: 0.6, depth: 1.1, capacity: 4, color: "#C4A882", icon: "circle" },
-  // Seating
-  { id: "chair", name: "Chair", category: "SEATING", width: 0.5, height: 0.5, depth: 0.9, color: "#4A5568", icon: "chair" },
-  { id: "bench", name: "Bench (6ft)", category: "SEATING", width: 1.8, height: 0.5, depth: 0.45, capacity: 4, color: "#4A5568", icon: "rectangle" },
-  // Equipment
-  { id: "stage", name: "Stage", category: "EQUIPMENT", width: 4, height: 2.5, depth: 1.2, color: "#2D3748", icon: "rectangle" },
-  { id: "dj-booth", name: "DJ Booth", category: "EQUIPMENT", width: 2, height: 1, depth: 1.2, color: "#1A202C", icon: "rectangle" },
-  { id: "bar", name: "Bar", category: "EQUIPMENT", width: 3, height: 0.8, depth: 1.1, color: "#744210", icon: "rectangle" },
-  { id: "dance-floor", name: "Dance Floor", category: "EQUIPMENT", width: 4, height: 4, depth: 0.05, color: "#2B6CB0", icon: "rectangle" },
-  // Decor
-  { id: "plant", name: "Plant", category: "DECOR", width: 0.6, height: 0.6, depth: 1.2, color: "#276749", icon: "circle" },
-  { id: "sign", name: "Sign", category: "DECOR", width: 0.8, height: 0.3, depth: 1.5, color: "#E53E3E", icon: "rectangle" },
-  { id: "lighting", name: "Lighting Rig", category: "DECOR", width: 1, height: 1, depth: 2, color: "#D69E2E", icon: "circle" },
-];
+/** @deprecated Use TRS_FURNITURE from @/lib/trs-inventory */
+export const DEFAULT_FURNITURE: FurnitureTemplate[] = [];
 
 // ─── Floor Plan Objects ──────────────────────────────────────────────
 
@@ -95,6 +79,7 @@ export interface VenueData {
   address?: string;
   capacity?: number;
   imageUrl?: string;
+  unit?: "ft" | "m";
   rooms: RoomData[];
 }
 
@@ -104,6 +89,8 @@ export interface RoomData {
   width: number;
   height: number;
   capacity?: number;
+  unit?: "ft" | "m";
+  notes?: string;
 }
 
 // ─── Live Collaboration ──────────────────────────────────────────────

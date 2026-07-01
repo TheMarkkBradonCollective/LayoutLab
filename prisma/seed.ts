@@ -1,18 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { TRS_FURNITURE, TRS_MAIN_FLOOR } from "../src/lib/trs-inventory";
 
 const prisma = new PrismaClient();
 
 const VENUE_ID = "venue-the-rink-studios";
 
-const DEFAULT_FURNITURE = [
-  { name: "Round Table (60\")", category: "TABLES" as const, width: 1.5, height: 1.5, depth: 0.75, capacity: 8, color: "#8B7355" },
-  { name: "Chair", category: "SEATING" as const, width: 0.5, height: 0.5, depth: 0.9, color: "#4A5568" },
-  { name: "Stage", category: "EQUIPMENT" as const, width: 4, height: 2.5, depth: 1.2, color: "#2D3748" },
-  { name: "Plant", category: "DECOR" as const, width: 0.6, height: 0.6, depth: 1.2, color: "#276749" },
-];
-
 async function main() {
-  console.log("Seeding database for The Rink Studios...");
+  console.log("Seeding The Rink Studios inventory...");
 
   const user = await prisma.user.upsert({
     where: { email: "sarah@therinkstudios.com" },
@@ -34,7 +28,10 @@ async function main() {
 
   const venue = await prisma.venue.upsert({
     where: { id: VENUE_ID },
-    update: { name: "The Rink Studios" },
+    update: {
+      name: "The Rink Studios",
+      capacity: 400,
+    },
     create: {
       id: VENUE_ID,
       name: "The Rink Studios",
@@ -43,10 +40,13 @@ async function main() {
       ownerId: user.id,
       rooms: {
         create: [
-          { id: "room-main-rink", name: "Main Rink", width: 30, height: 20, capacity: 250 },
-          { id: "room-studio-floor", name: "Studio Floor", width: 15, height: 12, capacity: 80 },
-          { id: "room-concessions", name: "Concessions", width: 10, height: 6, capacity: 40 },
-          { id: "room-party-room", name: "Party Room", width: 8, height: 6, capacity: 30 },
+          {
+            id: "room-main-floor",
+            name: "Main Floor",
+            width: TRS_MAIN_FLOOR.width,
+            height: TRS_MAIN_FLOOR.lengthLeft,
+            capacity: 400,
+          },
         ],
       },
       members: {
@@ -56,12 +56,12 @@ async function main() {
         ],
       },
       items: {
-        create: DEFAULT_FURNITURE.map((item) => ({
+        create: TRS_FURNITURE.filter((i) => !i.id.startsWith("fixture-")).map((item) => ({
           name: item.name,
           category: item.category,
           width: item.width,
           height: item.height,
-          depth: item.depth,
+          quantity: item.quantity,
           capacity: item.capacity,
           color: item.color,
         })),
@@ -70,7 +70,7 @@ async function main() {
     include: { rooms: true },
   });
 
-  const mainRink = venue.rooms.find((r) => r.name === "Main Rink")!;
+  const mainFloor = venue.rooms.find((r) => r.name === "Main Floor")!;
 
   const layout = await prisma.layout.upsert({
     where: { id: "layout-concert-on-ice" },
@@ -78,23 +78,21 @@ async function main() {
     create: {
       id: "layout-concert-on-ice",
       name: "Concert on Ice",
-      description: "Stage, dance floor, and concessions layout for Main Rink",
+      description: "Main floor with stage, exits, bay door, and sample furniture",
       venueId: venue.id,
-      roomId: mainRink.id,
+      roomId: mainFloor.id,
       creatorId: user.id,
       objects: {
         create: [
-          { itemName: "Stage", itemType: "stage", category: "EQUIPMENT", x: 10, y: 1, width: 6, height: 3, color: "#2D3748" },
-          { itemName: "Dance Floor", itemType: "dance-floor", category: "EQUIPMENT", x: 9, y: 8, width: 8, height: 6, color: "#2B6CB0" },
-          { itemName: "Bar", itemType: "bar", category: "EQUIPMENT", x: 24, y: 2, width: 4, height: 0.8, color: "#744210" },
-          { itemName: "Round Table (60\")", itemType: "round-table-60", category: "TABLES", x: 2, y: 5, width: 1.5, height: 1.5, color: "#8B7355", capacity: 8 },
-          { itemName: "DJ Booth", itemType: "dj-booth", category: "EQUIPMENT", x: 18, y: 1.5, width: 2, height: 1, color: "#1A202C" },
+          { itemName: "Stage Platform", itemType: "stage-platform", category: "EQUIPMENT", x: 3.5, y: 3, width: 28, height: 4, color: "#1E293B", locked: true },
+          { itemName: "Merch Table (8 ft)", itemType: "merch-8ft", category: "TABLES", x: 4, y: 25, width: 8, height: 2.5, color: "#6B7280" },
+          { itemName: "Green Couch", itemType: "couch-green", category: "SEATING", x: 20, y: 50, width: 6, height: 2.5, color: "#166534", capacity: 3 },
         ],
       },
       versions: {
         create: {
           version: 1,
-          label: "Initial setup",
+          label: "Initial TRS inventory layout",
           snapshot: "[]",
           creatorId: user.id,
         },
@@ -103,6 +101,7 @@ async function main() {
   });
 
   console.log(`Seeded venue: ${venue.name}`);
+  console.log(`Seeded ${TRS_FURNITURE.length} item types`);
   console.log(`Seeded layout: ${layout.name}`);
   console.log("Done!");
 }

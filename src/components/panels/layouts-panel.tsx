@@ -2,28 +2,37 @@
 
 import { Plus, Clock, FileText } from "lucide-react";
 import { useEditorStore } from "@/stores/editor-store";
+import { DEMO_EMPTY_OBJECTS, DEMO_EVENT_OBJECTS } from "@/lib/demo-data";
 import { cn } from "@/lib/utils";
 
 const DEMO_LAYOUTS = [
-  { id: "concert-on-ice", name: "Concert on Ice", version: 3, updated: "2 hours ago" },
-  { id: "hockey-night", name: "Hockey Night", version: 2, updated: "Yesterday" },
+  { id: "concert-on-ice", name: "Concert on Ice", version: 1, updated: "Just now" },
+  { id: "hockey-night", name: "Hockey Night", version: 1, updated: "Yesterday" },
   { id: "birthday-party", name: "Birthday Party", version: 1, updated: "3 days ago" },
-  { id: "figure-skating", name: "Figure Skating Showcase", version: 2, updated: "1 week ago" },
-  { id: "empty-rink", name: "Empty Rink", version: 1, updated: "2 weeks ago" },
+  { id: "figure-skating", name: "Figure Skating Showcase", version: 1, updated: "1 week ago" },
+  { id: "empty-rink", name: "Empty Floor", version: 1, updated: "Template", isEmpty: true },
 ];
 
 export function LayoutsPanel() {
-  const { currentLayout, setCurrentLayout, venue } = useEditorStore();
+  const { currentLayout, setCurrentLayout, venue, loadObjects, objects } = useEditorStore();
 
   const handleSelect = (layout: (typeof DEMO_LAYOUTS)[0]) => {
+    const layoutObjects =
+      layout.id === "empty-rink"
+        ? DEMO_EMPTY_OBJECTS
+        : layout.id === "concert-on-ice"
+          ? DEMO_EVENT_OBJECTS
+          : objects;
+
     setCurrentLayout({
       id: layout.id,
       name: layout.name,
-      roomId: venue?.rooms[0]?.id ?? "room-main-rink",
+      roomId: venue?.rooms[0]?.id ?? "room-main-floor",
       venueId: venue?.id ?? "venue-the-rink-studios",
-      objects: currentLayout?.objects ?? [],
+      objects: layoutObjects,
       version: layout.version,
     });
+    loadObjects(layoutObjects);
   };
 
   return (

@@ -6,7 +6,7 @@ const DEMO_VENUES = [
     id: "venue-the-rink-studios",
     name: "The Rink Studios",
     address: "TRS — Primary venue",
-    rooms: 4,
+    rooms: 1,
     capacity: 400,
     members: 8,
   },

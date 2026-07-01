@@ -81,7 +81,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   tool: "select",
   zoom: 1,
   panOffset: { x: 0, y: 0 },
-  gridSize: 0.5,
+  gridSize: 1,
   showGrid: true,
   snapToGrid: true,
   platform: "tablet",

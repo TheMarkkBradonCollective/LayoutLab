@@ -5,10 +5,10 @@ import { Stage, Layer, Rect, Group, Text, Line } from "react-konva";
 import type Konva from "konva";
 import { useEditorStore } from "@/stores/editor-store";
 import type { FloorObject } from "@/types";
+import { PIXELS_PER_FOOT, TRS_MAIN_FLOOR } from "@/lib/trs-inventory";
 
-const PIXELS_PER_METER = 40;
-const ROOM_WIDTH = 20;
-const ROOM_HEIGHT = 15;
+const ROOM_WIDTH = TRS_MAIN_FLOOR.width;
+const ROOM_HEIGHT = TRS_MAIN_FLOOR.lengthLeft;
 
 export function FloorPlanner() {
   const stageRef = useRef<Konva.Stage>(null);
@@ -32,8 +32,9 @@ export function FloorPlanner() {
   const room = venue?.rooms[0];
   const roomWidth = room?.width ?? ROOM_WIDTH;
   const roomHeight = room?.height ?? ROOM_HEIGHT;
-  const stageWidth = roomWidth * PIXELS_PER_METER;
-  const stageHeight = roomHeight * PIXELS_PER_METER;
+  const stageWidth = roomWidth * PIXELS_PER_FOOT;
+  const stageHeight = roomHeight * PIXELS_PER_FOOT;
+  const unit = room?.unit ?? "ft";
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -127,23 +128,32 @@ export function FloorPlanner() {
             <Text
               x={20}
               y={4}
-              text={room?.name ?? "Main Rink"}
+              text={room?.name ?? "Main Floor"}
               fontSize={11}
               fill="#78716c"
             />
+            {room?.notes && (
+              <Text
+                x={20 + 80}
+                y={4}
+                text={room.notes}
+                fontSize={9}
+                fill="#a8a29e"
+              />
+            )}
 
             {/* Dimension labels */}
             <Text
               x={20 + stageWidth / 2 - 20}
               y={stageHeight + 24}
-              text={`${roomWidth}m`}
+              text={`${roomWidth} ${unit}`}
               fontSize={10}
               fill="#a8a29e"
             />
             <Text
               x={4}
               y={20 + stageHeight / 2}
-              text={`${roomHeight}m`}
+              text={`${roomHeight} ${unit}`}
               fontSize={10}
               fill="#a8a29e"
               rotation={-90}
@@ -155,7 +165,7 @@ export function FloorPlanner() {
                 key={obj.id}
                 object={obj}
                 isSelected={obj.id === selectedObjectId}
-                pixelsPerMeter={PIXELS_PER_METER}
+                pixelsPerFoot={PIXELS_PER_FOOT}
                 offsetX={20}
                 offsetY={20}
                 onSelect={() => selectObject(obj.id)}
@@ -175,7 +185,7 @@ export function FloorPlanner() {
 
       {/* Scale indicator */}
       <div className="absolute bottom-3 right-3 rounded bg-white/80 px-2 py-1 text-[10px] text-surface-500 backdrop-blur-sm">
-        1 grid = {gridSize}m
+        1 grid = {gridSize} ft
       </div>
     </div>
   );
@@ -191,7 +201,7 @@ function GridLines({
   gridSize: number;
 }) {
   const lines: React.ReactNode[] = [];
-  const spacing = gridSize * PIXELS_PER_METER;
+  const spacing = gridSize * PIXELS_PER_FOOT;
   const offset = 20;
 
   for (let x = 0; x <= width; x += spacing) {
@@ -221,7 +231,7 @@ function GridLines({
 function FloorObjectShape({
   object,
   isSelected,
-  pixelsPerMeter,
+  pixelsPerFoot,
   offsetX,
   offsetY,
   onSelect,
@@ -230,7 +240,7 @@ function FloorObjectShape({
 }: {
   object: FloorObject;
   isSelected: boolean;
-  pixelsPerMeter: number;
+  pixelsPerFoot: number;
   offsetX: number;
   offsetY: number;
   onSelect: () => void;
@@ -238,10 +248,16 @@ function FloorObjectShape({
   onRotate: () => void;
 }) {
   const { tool } = useEditorStore();
-  const w = object.width * pixelsPerMeter;
-  const h = object.height * pixelsPerMeter;
-  const x = offsetX + object.x * pixelsPerMeter;
-  const y = offsetY + object.y * pixelsPerMeter;
+  const w = object.width * pixelsPerFoot;
+  const h = object.height * pixelsPerFoot;
+  const x = offsetX + object.x * pixelsPerFoot;
+  const y = offsetY + object.y * pixelsPerFoot;
+  const isRound =
+    object.itemType.includes("round") ||
+    object.itemType.includes("cocktail") ||
+    object.itemType.includes("stanchion");
+  const labelColor =
+    object.color === "#F3F4F6" || object.color === "#C0C0C0" ? "#374151" : "white";
 
   return (
     <Group
@@ -256,8 +272,8 @@ function FloorObjectShape({
       onDblClick={onRotate}
       onDblTap={onRotate}
       onDragEnd={(e) => {
-        const newX = (e.target.x() - offsetX) / pixelsPerMeter;
-        const newY = (e.target.y() - offsetY) / pixelsPerMeter;
+        const newX = (e.target.x() - offsetX) / pixelsPerFoot;
+        const newY = (e.target.y() - offsetY) / pixelsPerFoot;
         onDragEnd(newX, newY);
       }}
     >
@@ -266,7 +282,7 @@ function FloorObjectShape({
         height={h}
         fill={object.color}
         opacity={0.85}
-        cornerRadius={object.category === "TABLES" ? w / 2 : 3}
+        cornerRadius={isRound ? Math.min(w, h) / 2 : 3}
         stroke={isSelected ? "#4c6ef5" : object.locked ? "#ef4444" : "transparent"}
         strokeWidth={isSelected ? 2 : object.locked ? 1 : 0}
         shadowColor="rgba(0,0,0,0.15)"
@@ -280,7 +296,7 @@ function FloorObjectShape({
         align="center"
         verticalAlign="middle"
         fontSize={Math.min(10, w / 4)}
-        fill="white"
+        fill={labelColor}
         fontStyle="bold"
         listening={false}
       />
@@ -290,7 +306,7 @@ function FloorObjectShape({
           y={2}
           text={String(object.capacity)}
           fontSize={8}
-          fill="white"
+          fill={labelColor}
           opacity={0.8}
           listening={false}
         />
@@ -308,7 +324,7 @@ function Walkthrough3D({
   roomHeight: number;
   objects: FloorObject[];
 }) {
-  const scale = 30;
+  const scale = 8;
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-gradient-to-b from-surface-800 to-surface-900 p-8">
       <div className="mb-4 text-center">
@@ -360,7 +376,7 @@ function SimulationView({
   objects: FloorObject[];
 }) {
   const { isSimulationPlaying, simulationConfig } = useEditorStore();
-  const scale = 30;
+  const scale = 8;
   const guestCount = simulationConfig?.guestCount ?? 50;
 
   const patrons = Array.from({ length: Math.min(guestCount, 100) }, (_, i) => ({
