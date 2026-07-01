@@ -2,7 +2,7 @@ import type { ItemCategory } from "@/types";
 
 /** All TRS floor-plan dimensions are stored in feet. */
 export const TRS_UNIT = "ft" as const;
-export const PIXELS_PER_FOOT = 11;
+export const PIXELS_PER_FOOT = 8;
 
 export interface TrsFloorSpecs {
   width: number;
@@ -19,8 +19,8 @@ export interface TrsFloorSpecs {
 
 export const TRS_MAIN_FLOOR: TrsFloorSpecs = {
   width: 35,
-  lengthLeft: 90,  // cleaning closet → back wall (left wall)
-  lengthRight: 84, // bar → greenroom door (right wall)
+  lengthLeft: 90,  // left wall: cleaning closet → back wall / stage
+  lengthRight: 84, // right wall: bar area → greenroom door
   bayDoorWidth: 12,
   rampWidth: 11,
   rampDepth: 13,

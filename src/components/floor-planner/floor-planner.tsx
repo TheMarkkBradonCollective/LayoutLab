@@ -5,12 +5,22 @@ import { Stage, Layer, Rect, Group, Text, Line } from "react-konva";
 import type Konva from "konva";
 import { useEditorStore } from "@/stores/editor-store";
 import type { FloorObject } from "@/types";
-import { PIXELS_PER_FOOT } from "@/lib/trs-inventory";
-import { TRS_LAYOUT } from "@/lib/trs-floor-plan";
+import { PIXELS_PER_FOOT, TRS_MAIN_FLOOR } from "@/lib/trs-inventory";
+import {
+  TRS_LAYOUT,
+  getCanvasPadLeft,
+  getCanvasPadTop,
+  getHallBounds,
+} from "@/lib/trs-floor-plan";
 import { FloorPlanLayer } from "./floor-plan-layer";
 
+const PAD_LEFT = getCanvasPadLeft();
+const PAD_TOP = getCanvasPadTop();
+const PAD_RIGHT = 20;
+const PAD_BOTTOM = 28;
 const ROOM_WIDTH = TRS_LAYOUT.totalWidth;
 const ROOM_HEIGHT = TRS_LAYOUT.totalHeight;
+const HALL_BOUNDS = getHallBounds();
 
 export function FloorPlanner() {
   const stageRef = useRef<Konva.Stage>(null);
@@ -40,8 +50,8 @@ export function FloorPlanner() {
   const roomHeight = room?.height ?? ROOM_HEIGHT;
   const stageWidth = roomWidth * PIXELS_PER_FOOT;
   const stageHeight = roomHeight * PIXELS_PER_FOOT;
-  const canvasWidth = stageWidth + 40;
-  const canvasHeight = stageHeight + 40;
+  const canvasWidth = stageWidth + PAD_LEFT + PAD_RIGHT;
+  const canvasHeight = stageHeight + PAD_TOP + PAD_BOTTOM;
   const unit = room?.unit ?? "ft";
 
   useEffect(() => {
@@ -128,6 +138,11 @@ export function FloorPlanner() {
     return <SimulationView roomWidth={roomWidth} roomHeight={roomHeight} objects={objects} />;
   }
 
+  const gridX = PAD_LEFT + TRS_LAYOUT.mainX * PIXELS_PER_FOOT;
+  const gridY = PAD_TOP;
+  const gridW = TRS_MAIN_FLOOR.width * PIXELS_PER_FOOT;
+  const gridH = TRS_MAIN_FLOOR.lengthLeft * PIXELS_PER_FOOT;
+
   return (
     <div
       ref={containerRef}
@@ -152,23 +167,28 @@ export function FloorPlanner() {
           }}
         >
           <Layer>
-            {/* Fixed floor plan: walls, doors, stage zone, ramp */}
-            <FloorPlanLayer offsetX={20} offsetY={20} />
+            <FloorPlanLayer offsetX={PAD_LEFT} offsetY={PAD_TOP} />
 
-            {/* Grid over floor area */}
-            {showGrid && <GridLines width={stageWidth} height={stageHeight} gridSize={gridSize} />}
+            {showGrid && (
+              <GridLines
+                x={gridX}
+                y={gridY}
+                width={gridW}
+                height={gridH}
+                gridSize={gridSize}
+              />
+            )}
 
-            {/* Room label */}
             <Text
-              x={20}
+              x={PAD_LEFT + 4}
               y={4}
-              text={room?.name ?? "Main Floor"}
+              text={room?.name ?? "Performance Venue"}
               fontSize={11}
               fill="#78716c"
             />
             {room?.notes && (
               <Text
-                x={20 + 80}
+                x={PAD_LEFT + 120}
                 y={4}
                 text={room.notes}
                 fontSize={9}
@@ -176,32 +196,15 @@ export function FloorPlanner() {
               />
             )}
 
-            {/* Dimension labels */}
-            <Text
-              x={20 + stageWidth / 2 - 20}
-              y={stageHeight + 24}
-              text={`${roomWidth} ${unit}`}
-              fontSize={10}
-              fill="#a8a29e"
-            />
-            <Text
-              x={4}
-              y={20 + stageHeight / 2}
-              text={`${roomHeight} ${unit}`}
-              fontSize={10}
-              fill="#a8a29e"
-              rotation={-90}
-            />
-
-            {/* Floor objects */}
             {objects.map((obj) => (
               <FloorObjectShape
                 key={obj.id}
                 object={obj}
                 isSelected={obj.id === selectedObjectId}
                 pixelsPerFoot={PIXELS_PER_FOOT}
-                offsetX={20}
-                offsetY={20}
+                offsetX={PAD_LEFT}
+                offsetY={PAD_TOP}
+                hallBounds={HALL_BOUNDS}
                 onSelect={() => selectObject(obj.id)}
                 onDragEnd={(x, y) => {
                   pushHistory();
@@ -217,44 +220,46 @@ export function FloorPlanner() {
         </Stage>
       </div>
 
-      {/* Scale indicator */}
       <div className="absolute bottom-3 right-3 rounded bg-white/80 px-2 py-1 text-[10px] text-surface-500 backdrop-blur-sm">
-        1 grid = {gridSize} ft
+        1 grid = {gridSize} ft · Hall {TRS_MAIN_FLOOR.width}×{TRS_MAIN_FLOOR.lengthLeft} ft
       </div>
     </div>
   );
 }
 
 function GridLines({
+  x,
+  y,
   width,
   height,
   gridSize,
 }: {
+  x: number;
+  y: number;
   width: number;
   height: number;
   gridSize: number;
 }) {
   const lines: React.ReactNode[] = [];
   const spacing = gridSize * PIXELS_PER_FOOT;
-  const offset = 20;
 
-  for (let x = 0; x <= width; x += spacing) {
+  for (let gx = 0; gx <= width; gx += spacing) {
     lines.push(
       <Line
-        key={`v-${x}`}
-        points={[offset + x, offset, offset + x, offset + height]}
+        key={`v-${gx}`}
+        points={[x + gx, y, x + gx, y + height]}
         stroke="#e7e5e4"
-        strokeWidth={x % (spacing * 2) === 0 ? 1 : 0.5}
+        strokeWidth={gx % (spacing * 2) === 0 ? 1 : 0.5}
       />
     );
   }
-  for (let y = 0; y <= height; y += spacing) {
+  for (let gy = 0; gy <= height; gy += spacing) {
     lines.push(
       <Line
-        key={`h-${y}`}
-        points={[offset, offset + y, offset + width, offset + y]}
+        key={`h-${gy}`}
+        points={[x, y + gy, x + width, y + gy]}
         stroke="#e7e5e4"
-        strokeWidth={y % (spacing * 2) === 0 ? 1 : 0.5}
+        strokeWidth={gy % (spacing * 2) === 0 ? 1 : 0.5}
       />
     );
   }
@@ -268,6 +273,7 @@ function FloorObjectShape({
   pixelsPerFoot,
   offsetX,
   offsetY,
+  hallBounds,
   onSelect,
   onDragEnd,
   onRotate,
@@ -277,6 +283,7 @@ function FloorObjectShape({
   pixelsPerFoot: number;
   offsetX: number;
   offsetY: number;
+  hallBounds: ReturnType<typeof getHallBounds>;
   onSelect: () => void;
   onDragEnd: (x: number, y: number) => void;
   onRotate: () => void;
@@ -293,6 +300,11 @@ function FloorObjectShape({
   const labelColor =
     object.color === "#F3F4F6" || object.color === "#C0C0C0" ? "#374151" : "white";
 
+  const clampPosition = (rawX: number, rawY: number) => ({
+    x: Math.max(hallBounds.minX, Math.min(hallBounds.maxX - object.width, rawX)),
+    y: Math.max(hallBounds.minY, Math.min(hallBounds.maxY - object.height, rawY)),
+  });
+
   return (
     <Group
       x={x}
@@ -306,9 +318,10 @@ function FloorObjectShape({
       onDblClick={onRotate}
       onDblTap={onRotate}
       onDragEnd={(e) => {
-        const newX = (e.target.x() - offsetX) / pixelsPerFoot;
-        const newY = (e.target.y() - offsetY) / pixelsPerFoot;
-        onDragEnd(newX, newY);
+        const rawX = (e.target.x() - offsetX) / pixelsPerFoot;
+        const rawY = (e.target.y() - offsetY) / pixelsPerFoot;
+        const clamped = clampPosition(rawX, rawY);
+        onDragEnd(clamped.x, clamped.y);
       }}
     >
       <Rect
@@ -426,10 +439,8 @@ function SimulationView({
         className="relative border border-surface-600"
         style={{ width: roomWidth * scale, height: roomHeight * scale }}
       >
-        {/* Room floor */}
         <div className="absolute inset-0 bg-surface-800" />
 
-        {/* Static objects */}
         {objects.map((obj) => (
           <div
             key={obj.id}
@@ -445,7 +456,6 @@ function SimulationView({
           />
         ))}
 
-        {/* Simulated patrons */}
         {isSimulationPlaying &&
           patrons.map((p) => (
             <div

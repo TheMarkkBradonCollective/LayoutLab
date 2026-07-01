@@ -8,7 +8,7 @@ import {
   TRS_LAYOUT,
   type FloorPlanElement,
 } from "@/lib/trs-floor-plan";
-import { PIXELS_PER_FOOT } from "@/lib/trs-inventory";
+import { PIXELS_PER_FOOT, TRS_MAIN_FLOOR } from "@/lib/trs-inventory";
 
 interface FloorPlanLayerProps {
   offsetX: number;
@@ -24,9 +24,10 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
   const scalePoints = (pts: number[]) =>
     pts.map((v, i) => (i % 2 === 0 ? offsetX + px(v) : offsetY + px(v)));
 
+  const { mainX, mainRight, mainWidth } = TRS_LAYOUT;
+
   return (
     <Group listening={false}>
-      {/* Full venue outline */}
       <Line
         points={scalePoints(venueOutline)}
         closed
@@ -35,7 +36,6 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
         strokeWidth={2.5}
       />
 
-      {/* Performance floor — slightly different fill */}
       <Line
         points={scalePoints(performanceFloor)}
         closed
@@ -44,13 +44,12 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
         strokeWidth={1}
       />
 
-      {/* Corridor between wing and main hall */}
       <Line
         points={scalePoints([
           TRS_LAYOUT.leftWingWidth + TRS_LAYOUT.corridorWidth,
           0,
           TRS_LAYOUT.leftWingWidth + TRS_LAYOUT.corridorWidth,
-          TRS_LAYOUT.totalHeight,
+          TRS_MAIN_FLOOR.lengthLeft,
         ])}
         stroke="#d6d3d1"
         strokeWidth={1}
@@ -65,43 +64,43 @@ export function FloorPlanLayer({ offsetX, offsetY }: FloorPlanLayerProps) {
         />
       ))}
 
-      {/* Dimension annotations */}
+      {/* Wall length annotations */}
       <Text
-        x={offsetX + px(TRS_LAYOUT.mainX + TRS_LAYOUT.mainWidth / 2) - 14}
-        y={offsetY - 14}
-        text="ENTRANCE / TOP"
+        x={offsetX + px(mainX + mainWidth / 2) - 30}
+        y={offsetY - 16}
+        text="ENTRANCE"
         fontSize={8}
         fill="#a8a29e"
         fontStyle="bold"
       />
       <Text
-        x={offsetX - 58}
-        y={offsetY + px(50)}
+        x={offsetX - 52}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft / 2) - 20}
         text="LEFT 90 ft"
         fontSize={8}
         fill="#a8a29e"
         rotation={-90}
       />
       <Text
-        x={offsetX + px(TRS_LAYOUT.mainRight) + 6}
-        y={offsetY + px(48)}
+        x={offsetX + px(mainRight) + 8}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthRight / 2) - 20}
         text="RIGHT 84 ft"
         fontSize={8}
         fill="#a8a29e"
         rotation={90}
       />
       <Text
-        x={offsetX + px(TRS_LAYOUT.mainX + TRS_LAYOUT.mainWidth / 2) - 10}
-        y={offsetY + px(TRS_LAYOUT.totalHeight) + 8}
-        text="STAGE"
+        x={offsetX + px(mainX + mainWidth / 2) - 12}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft) + 6}
+        text="STAGE / BACK WALL"
         fontSize={8}
         fill="#a8a29e"
         fontStyle="bold"
       />
       <Text
-        x={offsetX + px(TRS_LAYOUT.totalWidth / 2) - 12}
-        y={offsetY + px(TRS_LAYOUT.totalHeight) + 20}
-        text={`${TRS_LAYOUT.mainWidth} ft wide`}
+        x={offsetX + px(mainX + mainWidth / 2) - 14}
+        y={offsetY + px(TRS_MAIN_FLOOR.lengthLeft) + 18}
+        text={`${TRS_MAIN_FLOOR.width} ft wide`}
         fontSize={9}
         fill="#a8a29e"
       />
@@ -129,8 +128,7 @@ function FloorPlanElementShape({
       return (
         <Group>
           <Rect x={x} y={y} width={w} height={h} fill="#fef08a" opacity={0.55} stroke="#ca8a04" strokeWidth={1.5} />
-          <Text x={x} y={y + h / 2 - 10} width={w} align="center" text={element.label} fontSize={11} fill="#713f12" fontStyle="bold" />
-          <Text x={x} y={y + h / 2 + 2} width={w} align="center" text="24 ft" fontSize={8} fill="#92400e" />
+          <Text x={x} y={y + h / 2 - 6} width={w} align="center" text={element.label} fontSize={11} fill="#713f12" fontStyle="bold" />
         </Group>
       );
 
@@ -139,7 +137,6 @@ function FloorPlanElementShape({
         <Group>
           <Rect x={x} y={y} width={w} height={h} fill="#fde68a" opacity={0.7} stroke="#ca8a04" strokeWidth={1.5} />
           <Text x={x} y={y + h / 2 - 4} width={w} align="center" text={element.label} fontSize={9} fill="#713f12" fontStyle="bold" />
-          <Text x={x} y={y + h / 2 + 8} width={w} align="center" text="6 ft" fontSize={7} fill="#92400e" />
         </Group>
       );
 

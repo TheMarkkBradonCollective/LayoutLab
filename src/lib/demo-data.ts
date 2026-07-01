@@ -1,8 +1,10 @@
 import type { VenueData, LayoutData, FloorObject, LiveUser } from "@/types";
 import { TRS_MAIN_FLOOR, TRS_UNIT } from "@/lib/trs-inventory";
-import { TRS_LAYOUT } from "@/lib/trs-floor-plan";
+import { TRS_LAYOUT, getHallBounds } from "@/lib/trs-floor-plan";
 
 export const TRS_VENUE_ID = "venue-the-rink-studios";
+
+const HALL = getHallBounds();
 
 export const DEMO_VENUE: VenueData = {
   id: TRS_VENUE_ID,
@@ -18,7 +20,7 @@ export const DEMO_VENUE: VenueData = {
       height: TRS_LAYOUT.totalHeight,
       capacity: 620,
       unit: TRS_UNIT,
-      notes: `Main hall ${TRS_MAIN_FLOOR.width}×${TRS_MAIN_FLOOR.lengthLeft} ft · Left 90 ft · Right 84 ft`,
+      notes: `${TRS_MAIN_FLOOR.width}×${TRS_MAIN_FLOOR.lengthLeft} ft hall · Left 90 ft · Right 84 ft`,
     },
   ],
 };
@@ -33,7 +35,7 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemType: "merch-8ft",
     category: "TABLES",
     x: MX + 4,
-    y: 30,
+    y: 42,
     width: 8,
     height: 2.5,
     rotation: 0,
@@ -46,7 +48,7 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemType: "merch-8ft",
     category: "TABLES",
     x: MX + 16,
-    y: 30,
+    y: 42,
     width: 8,
     height: 2.5,
     rotation: 0,
@@ -59,7 +61,7 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemType: "cocktail-tall",
     category: "TABLES",
     x: MX + 8,
-    y: 45,
+    y: 52,
     width: 2,
     height: 2,
     rotation: 0,
@@ -71,8 +73,8 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemName: "Short Round Cocktail Table",
     itemType: "cocktail-short",
     category: "TABLES",
-    x: MX + 12,
-    y: 45,
+    x: MX + 14,
+    y: 52,
     width: 2,
     height: 2,
     rotation: 0,
@@ -85,7 +87,7 @@ export const DEMO_EVENT_OBJECTS: FloorObject[] = [
     itemType: "couch-green",
     category: "SEATING",
     x: MX + 20,
-    y: 55,
+    y: 58,
     width: 6,
     height: 2.5,
     rotation: 0,
@@ -138,3 +140,11 @@ export const DEMO_LIVE_USERS: LiveUser[] = [
   { id: "user-mike", name: "Mike", status: "editing", color: "#22c55e" },
   { id: "user-john", name: "John", status: "viewing", color: "#f59e0b" },
 ];
+
+/** Center of main hall for dropping new items */
+export function getDefaultDropPosition() {
+  return {
+    x: (HALL.minX + HALL.maxX) / 2,
+    y: (HALL.minY + HALL.maxY) / 2,
+  };
+}
