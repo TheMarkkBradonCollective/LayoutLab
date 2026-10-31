@@ -6,11 +6,23 @@ Built for **The Rink Studios (TRS)** — the venue this app was designed for.
 
 ## Deployment
 
-Merges to `main` deploy automatically to:
+LayoutLab runs on **Cloudflare Workers** (via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare)) with **Neon Postgres** for data and **Cloudflare R2** (`layoutlab-files`, bound as `FILES`) for uploaded files.
 
-**https://layout-lab-trs.vercel.app**
+| Command | What it does |
+| --- | --- |
+| `npm run preview` | Build and run the Worker locally in workerd |
+| `npm run deploy:preview` | Deploy the non-production `layoutlab-preview` Worker |
+| `npm run deploy` | Deploy the production `layoutlab` Worker (needs owner sign-off) |
+| `npm run db:migrate` | Apply Prisma migrations to Neon (`prisma migrate deploy`) |
+| `npm run db:seed` | Seed The Rink Studios demo data |
 
-The workspace demo runs client-side, so the floor planner works without a persistent database. API routes will need a hosted database (e.g. Vercel Postgres, Neon) for full persistence in production.
+Secrets are never committed. Set them as Worker secrets:
+
+```bash
+npx wrangler secret put DATABASE_URL --env preview   # Neon pooled connection string
+```
+
+Locally, put `DATABASE_URL` in `.dev.vars` (for `npm run preview`) and `DATABASE_URL` / `DIRECT_URL` in `.env` (for Prisma CLI and `next dev`). See `.env.example`.
 
 ## Overview
 
@@ -39,7 +51,8 @@ MyVenue is a tablet-first platform that gives venues full control over their dig
 | Styling | Tailwind CSS v4 |
 | 2D Canvas | React Konva |
 | State | Zustand |
-| Database | Prisma + SQLite (dev) |
+| Database | Prisma + Neon Postgres (`@prisma/adapter-neon`) |
+| Hosting | Cloudflare Workers (OpenNext) + R2 |
 | Icons | Lucide React |
 
 ## Getting Started
@@ -50,14 +63,14 @@ npm install
 
 # Set up database
 cp .env.example .env
-npx prisma db push
-npx tsx prisma/seed.ts
+npm run db:migrate
+npm run db:seed
 
 # Start development server
 npm run dev
 ```
 
-Visit [https://layout-lab-trs.vercel.app/workspace](https://layout-lab-trs.vercel.app/workspace) for the live demo, or run locally:
+Run locally:
 
 Open [http://localhost:3000](http://localhost:3000) for the landing page, or go directly to [http://localhost:3000/workspace](http://localhost:3000/workspace) for the floor planner with **The Rink Studios** demo data.
 
