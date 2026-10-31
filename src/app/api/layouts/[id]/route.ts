@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const prisma = getPrisma();
 
   const layout = await prisma.layout.findUnique({
     where: { id },
@@ -28,7 +29,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const body = await request.json();
+  const prisma = getPrisma();
+  const body = (await request.json()) as {
+    objects?: Record<string, unknown>[];
+    creatorId?: string;
+    label?: string;
+  };
   const { objects, creatorId, label } = body;
 
   const layout = await prisma.layout.findUnique({

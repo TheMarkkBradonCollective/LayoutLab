@@ -1,8 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import { TRS_FURNITURE, TRS_MAIN_FLOOR } from "../src/lib/trs-inventory";
 import { TRS_LAYOUT } from "../src/lib/trs-floor-plan";
 
-const prisma = new PrismaClient();
+if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set");
+const prisma = new PrismaClient({
+  adapter: new PrismaNeon({ connectionString: process.env.DATABASE_URL }),
+});
 
 const VENUE_ID = "venue-the-rink-studios";
 
@@ -107,5 +111,8 @@ async function main() {
 }
 
 main()
-  .catch(console.error)
+  .catch((e) => {
+    console.error(e);
+    process.exitCode = 1;
+  })
   .finally(() => prisma.$disconnect());

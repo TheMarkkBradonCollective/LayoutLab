@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const prisma = getPrisma();
   const venues = await prisma.venue.findMany({
     include: {
       rooms: true,
@@ -15,7 +18,13 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  const prisma = getPrisma();
+  const body = (await request.json()) as {
+    name?: string;
+    address?: string;
+    capacity?: number;
+    ownerId?: string;
+  };
   const { name, address, capacity, ownerId } = body;
 
   if (!name || !ownerId) {
