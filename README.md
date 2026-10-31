@@ -8,6 +8,8 @@ Built for **The Rink Studios (TRS)** — the venue this app was designed for.
 
 LayoutLab runs on **Cloudflare Workers** (via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare)) with **Neon Postgres** for data and **Cloudflare R2** (`layoutlab-files`, bound as `FILES`) for uploaded files.
 
+**Live:** https://layoutlab.themarkkbrandoncollective-2d9.workers.dev
+
 | Command | What it does |
 | --- | --- |
 | `npm run preview` | Build and run the Worker locally in workerd |
