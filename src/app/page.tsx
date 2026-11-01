@@ -14,13 +14,14 @@ import {
 const FEATURES = [
   {
     icon: LayoutGrid,
-    title: "2D Floor Planner",
-    description: "Drag, drop, rotate, and resize furniture on accurate floor plans.",
+    title: "Room Design",
+    description:
+      "Set up a venue the way you furnish a room: inventory, place, rotate, scale, and move the whole room around.",
   },
   {
     icon: Box,
-    title: "3D Walkthrough",
-    description: "View layouts from a guest perspective with immersive 3D mode.",
+    title: "3D View",
+    description: "Orbit the same layout in 3D, or slide the room, to check the stage, seating, and sightlines.",
   },
   {
     icon: Users,
