@@ -5,14 +5,18 @@ import { Stage, Layer, Rect, Group, Text, Line } from "react-konva";
 import type Konva from "konva";
 import { useEditorStore } from "@/stores/editor-store";
 import type { FloorObject } from "@/types";
-import { PIXELS_PER_FOOT, TRS_MAIN_FLOOR } from "@/lib/trs-inventory";
+import { PIXELS_PER_FOOT, TRS_FURNITURE, TRS_MAIN_FLOOR } from "@/lib/trs-inventory";
+import { TRS_LAYOUT, getCanvasPadLeft, getCanvasPadTop } from "@/lib/trs-floor-plan";
+import { getDefaultDropPosition } from "@/lib/demo-data";
 import {
-  TRS_LAYOUT,
-  getCanvasPadLeft,
-  getCanvasPadTop,
-  getHallBounds,
-} from "@/lib/trs-floor-plan";
+  VENUE_ITEM_DRAG_TYPE,
+  buildPlacement,
+  clampToHall,
+  clientToPlanFeet,
+} from "@/lib/room-placement";
 import { FloorPlanLayer } from "./floor-plan-layer";
+import { RoomView3D } from "./room-view-3d";
+import { DesignDock, RoomHint, SelectionToolbar } from "./design-chrome";
 
 const PAD_LEFT = getCanvasPadLeft();
 const PAD_TOP = getCanvasPadTop();
@@ -20,30 +24,41 @@ const PAD_RIGHT = 20;
 const PAD_BOTTOM = 28;
 const ROOM_WIDTH = TRS_LAYOUT.totalWidth;
 const ROOM_HEIGHT = TRS_LAYOUT.totalHeight;
-const HALL_BOUNDS = getHallBounds();
 
 export function FloorPlanner() {
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const planWrapRef = useRef<HTMLDivElement>(null);
+  const panDrag = useRef<{ x: number; y: number; ox: number; oy: number; moved: boolean } | null>(null);
+  const suppressClear = useRef(false);
+  const zoomRef = useRef(1);
   const [mounted, setMounted] = useState(false);
   const {
     objects,
-    selectedObjectId,
+    selectionIds,
     zoom,
     panOffset,
     showGrid,
     gridSize,
-    tool,
+    buildMode,
     is3DMode,
     isSimulationMode,
     selectObject,
-    updateObject,
-    deleteObject,
     pushHistory,
+    translateObjects,
+    removeSelected,
+    rotateSelected,
     venue,
     setZoom,
+    setPanOffset,
+    setBuildMode,
+    addObject,
+    setOrbit,
+    orbit,
     platform,
   } = useEditorStore();
+
+  zoomRef.current = zoom;
 
   const room = venue?.rooms[0];
   const roomWidth = room?.width ?? ROOM_WIDTH;
@@ -52,8 +67,6 @@ export function FloorPlanner() {
   const stageHeight = roomHeight * PIXELS_PER_FOOT;
   const canvasWidth = stageWidth + PAD_LEFT + PAD_RIGHT;
   const canvasHeight = stageHeight + PAD_TOP + PAD_BOTTOM;
-  const unit = room?.unit ?? "ft";
-
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -79,38 +92,57 @@ export function FloorPlanner() {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (!selectedObjectId) return;
-      const obj = objects.find((o) => o.id === selectedObjectId);
-      if (!obj || obj.locked) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+
+      if (e.key === "Escape") {
+        selectObject(null);
+        return;
+      }
+      if (buildMode !== "design" || selectionIds.length === 0) return;
 
       const step = gridSize;
+      const nudge = (dx: number, dy: number) => {
+        pushHistory();
+        translateObjects(selectionIds, dx, dy);
+      };
+
       switch (e.key) {
         case "Delete":
         case "Backspace":
-          deleteObject(selectedObjectId);
+          removeSelected();
           break;
         case "ArrowLeft":
-          updateObject(selectedObjectId, { x: obj.x - step });
+          nudge(-step, 0);
           break;
         case "ArrowRight":
-          updateObject(selectedObjectId, { x: obj.x + step });
+          nudge(step, 0);
           break;
         case "ArrowUp":
-          updateObject(selectedObjectId, { y: obj.y - step });
+          nudge(0, -step);
           break;
         case "ArrowDown":
-          updateObject(selectedObjectId, { y: obj.y + step });
+          nudge(0, step);
           break;
         case "r":
         case "R":
-          updateObject(selectedObjectId, { rotation: (obj.rotation + 15) % 360 });
+          rotateSelected(45);
           break;
-        case "Escape":
-          selectObject(null);
-          break;
+        default:
+          return;
       }
+      e.preventDefault();
     },
-    [selectedObjectId, objects, gridSize, deleteObject, updateObject, selectObject]
+    [
+      buildMode,
+      selectionIds,
+      gridSize,
+      removeSelected,
+      translateObjects,
+      rotateSelected,
+      pushHistory,
+      selectObject,
+    ]
   );
 
   useEffect(() => {
@@ -118,8 +150,44 @@ export function FloorPlanner() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  const handleStageClick = () => {
-    selectObject(null);
+  const moveRoom = (clientX: number, clientY: number) => {
+    const drag = panDrag.current;
+    if (!drag || is3DMode) return;
+    const dx = clientX - drag.x;
+    const dy = clientY - drag.y;
+    if (Math.hypot(dx, dy) > 3) drag.moved = true;
+    setPanOffset({
+      x: drag.ox + dx / zoomRef.current,
+      y: drag.oy + dy / zoomRef.current,
+    });
+  };
+
+  const placeDroppedItem = (event: React.DragEvent) => {
+    if ((event.target as HTMLElement).closest("[data-design-dock], [data-selection-toolbar]")) return;
+    const itemId =
+      event.dataTransfer.getData(VENUE_ITEM_DRAG_TYPE) || event.dataTransfer.getData("text/plain");
+    const item = TRS_FURNITURE.find((entry) => entry.id === itemId);
+    if (!item) return;
+    event.preventDefault();
+    setBuildMode("design");
+
+    if (is3DMode || !planWrapRef.current) {
+      addObject(buildPlacement(item, getDefaultDropPosition()));
+      return;
+    }
+
+    const rect = planWrapRef.current.getBoundingClientRect();
+    const feet = clientToPlanFeet(
+      event.clientX,
+      event.clientY,
+      rect,
+      canvasWidth,
+      canvasHeight,
+      PAD_LEFT,
+      PAD_TOP,
+      PIXELS_PER_FOOT
+    );
+    addObject(buildPlacement(item, feet));
   };
 
   if (!mounted) {
@@ -130,99 +198,161 @@ export function FloorPlanner() {
     );
   }
 
-  if (is3DMode) {
-    return <Walkthrough3D roomWidth={roomWidth} roomHeight={roomHeight} objects={objects} />;
-  }
-
-  if (isSimulationMode) {
-    return <SimulationView roomWidth={roomWidth} roomHeight={roomHeight} objects={objects} />;
-  }
-
   const gridX = PAD_LEFT + TRS_LAYOUT.mainX * PIXELS_PER_FOOT;
   const gridY = PAD_TOP;
   const gridW = TRS_MAIN_FLOOR.width * PIXELS_PER_FOOT;
   const gridH = TRS_MAIN_FLOOR.lengthLeft * PIXELS_PER_FOOT;
+  const designing = buildMode === "design" && !isSimulationMode;
+  const hintMode = is3DMode
+    ? buildMode === "design"
+      ? "3d"
+      : "preview-3d"
+    : buildMode === "design"
+      ? "plan"
+      : "preview-plan";
 
   return (
     <div
       ref={containerRef}
-      className="relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden bg-surface-200"
+      className="relative min-h-0 w-full flex-1 overflow-hidden bg-surface-200"
+      onWheel={(event) => {
+        if (isSimulationMode) return;
+        if (is3DMode) {
+          const next = orbit.zoom * (event.deltaY > 0 ? 0.92 : 1.08);
+          setOrbit({ ...orbit, zoom: Math.min(2.6, Math.max(0.45, next)) });
+          return;
+        }
+        setZoom(zoom * (event.deltaY > 0 ? 0.92 : 1.08));
+      }}
+      onDragOver={(event) => {
+        if (isSimulationMode) return;
+        event.preventDefault();
+      }}
+      onDrop={placeDroppedItem}
     >
-      <div
-        className="shadow-lg"
-        style={{
-          transform: `scale(${zoom}) translate(${panOffset.x}px, ${panOffset.y}px)`,
-          transformOrigin: "center center",
-        }}
-      >
-        <Stage
-          ref={stageRef}
-          width={canvasWidth}
-          height={canvasHeight}
-          onClick={(e) => {
-            if (e.target === e.target.getStage()) handleStageClick();
+      {isSimulationMode ? (
+        <SimulationView roomWidth={roomWidth} roomHeight={roomHeight} objects={objects} />
+      ) : is3DMode ? (
+        <RoomView3D />
+      ) : (
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          onPointerDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            panDrag.current = {
+              x: event.clientX,
+              y: event.clientY,
+              ox: panOffset.x,
+              oy: panOffset.y,
+              moved: false,
+            };
           }}
-          onTap={(e) => {
-            if (e.target === e.target.getStage()) handleStageClick();
+          onPointerMove={(event) => moveRoom(event.clientX, event.clientY)}
+          onPointerUp={() => {
+            panDrag.current = null;
           }}
         >
-          <Layer>
-            <FloorPlanLayer offsetX={PAD_LEFT} offsetY={PAD_TOP} />
+        <div
+          ref={planWrapRef}
+          className="shadow-lg"
+          style={{
+            transform: `scale(${zoom}) translate(${panOffset.x}px, ${panOffset.y}px)`,
+            transformOrigin: "center center",
+          }}
+        >
+          <Stage
+            ref={stageRef}
+            width={canvasWidth}
+            height={canvasHeight}
+            onMouseDown={(event) => {
+              const stage = event.target.getStage();
+              if (!stage || event.target !== stage) return;
+              panDrag.current = {
+                x: event.evt.clientX,
+                y: event.evt.clientY,
+                ox: panOffset.x,
+                oy: panOffset.y,
+                moved: false,
+              };
+            }}
+            onMouseMove={(event) => moveRoom(event.evt.clientX, event.evt.clientY)}
+            onMouseUp={() => {
+              if (panDrag.current?.moved) suppressClear.current = true;
+              panDrag.current = null;
+            }}
+            onClick={(event) => {
+              if (suppressClear.current) {
+                suppressClear.current = false;
+                return;
+              }
+              if (event.target === event.target.getStage()) selectObject(null);
+            }}
+            onTap={(event) => {
+              if (event.target === event.target.getStage()) selectObject(null);
+            }}
+          >
+            <Layer>
+              <FloorPlanLayer offsetX={PAD_LEFT} offsetY={PAD_TOP} />
 
-            {showGrid && (
-              <GridLines
-                x={gridX}
-                y={gridY}
-                width={gridW}
-                height={gridH}
-                gridSize={gridSize}
-              />
-            )}
+              {showGrid && (
+                <GridLines
+                  x={gridX}
+                  y={gridY}
+                  width={gridW}
+                  height={gridH}
+                  gridSize={gridSize}
+                />
+              )}
 
-            <Text
-              x={PAD_LEFT + 4}
-              y={4}
-              text={room?.name ?? "Performance Venue"}
-              fontSize={11}
-              fill="#78716c"
-            />
-            {room?.notes && (
               <Text
-                x={PAD_LEFT + 120}
+                x={PAD_LEFT + 4}
                 y={4}
-                text={room.notes}
-                fontSize={9}
-                fill="#a8a29e"
+                text={room?.name ?? "Performance Venue"}
+                fontSize={11}
+                fill="#78716c"
+                listening={false}
               />
-            )}
+              {room?.notes && (
+                <Text
+                  x={PAD_LEFT + 120}
+                  y={4}
+                  text={room.notes}
+                  fontSize={9}
+                  fill="#a8a29e"
+                  listening={false}
+                />
+              )}
 
-            {objects.map((obj) => (
-              <FloorObjectShape
-                key={obj.id}
-                object={obj}
-                isSelected={obj.id === selectedObjectId}
-                pixelsPerFoot={PIXELS_PER_FOOT}
-                offsetX={PAD_LEFT}
-                offsetY={PAD_TOP}
-                hallBounds={HALL_BOUNDS}
-                onSelect={() => selectObject(obj.id)}
-                onDragEnd={(x, y) => {
-                  pushHistory();
-                  updateObject(obj.id, { x, y });
-                }}
-                onRotate={() => {
-                  pushHistory();
-                  updateObject(obj.id, { rotation: (obj.rotation + 15) % 360 });
-                }}
-              />
-            ))}
-          </Layer>
-        </Stage>
-      </div>
+              {objects.map((obj) => (
+                <FloorObjectShape
+                  key={obj.id}
+                  object={obj}
+                  isSelected={selectionIds.includes(obj.id)}
+                  pixelsPerFoot={PIXELS_PER_FOOT}
+                  offsetX={PAD_LEFT}
+                  offsetY={PAD_TOP}
+                />
+              ))}
+            </Layer>
+          </Stage>
+        </div>
+        </div>
+      )}
 
-      <div className="absolute bottom-3 right-3 rounded bg-white/80 px-2 py-1 text-[10px] text-surface-500 backdrop-blur-sm">
-        Plan view (top-down) · 1 grid = {gridSize} ft
-      </div>
+      {!isSimulationMode && (is3DMode || !designing) && (
+        <RoomHint
+          mode={hintMode}
+          className={is3DMode ? "top-3 right-3 left-auto" : "bottom-3"}
+        />
+      )}
+      {designing && <SelectionToolbar />}
+      {designing && <DesignDock />}
+
+      {!is3DMode && !isSimulationMode && (
+        <div className="pointer-events-none absolute right-3 top-3 z-20 rounded bg-white/80 px-2 py-1 text-[10px] text-surface-500 backdrop-blur-sm">
+          Plan view · drag the floor to move the room · 1 grid = {gridSize} ft
+        </div>
+      )}
     </div>
   );
 }
@@ -250,6 +380,7 @@ function GridLines({
         points={[x + gx, y, x + gx, y + height]}
         stroke="#e7e5e4"
         strokeWidth={gx % (spacing * 2) === 0 ? 1 : 0.5}
+        listening={false}
       />
     );
   }
@@ -260,6 +391,7 @@ function GridLines({
         points={[x, y + gy, x + width, y + gy]}
         stroke="#e7e5e4"
         strokeWidth={gy % (spacing * 2) === 0 ? 1 : 0.5}
+        listening={false}
       />
     );
   }
@@ -273,22 +405,15 @@ function FloorObjectShape({
   pixelsPerFoot,
   offsetX,
   offsetY,
-  hallBounds,
-  onSelect,
-  onDragEnd,
-  onRotate,
 }: {
   object: FloorObject;
   isSelected: boolean;
   pixelsPerFoot: number;
   offsetX: number;
   offsetY: number;
-  hallBounds: ReturnType<typeof getHallBounds>;
-  onSelect: () => void;
-  onDragEnd: (x: number, y: number) => void;
-  onRotate: () => void;
 }) {
-  const { tool } = useEditorStore();
+  const { tool, buildMode, selectionIds, selectObject, pushHistory, updateObject } =
+    useEditorStore();
   const w = object.width * pixelsPerFoot;
   const h = object.height * pixelsPerFoot;
   const x = offsetX + object.x * pixelsPerFoot;
@@ -299,11 +424,7 @@ function FloorObjectShape({
     object.itemType.includes("stanchion");
   const labelColor =
     object.color === "#F3F4F6" || object.color === "#C0C0C0" ? "#374151" : "white";
-
-  const clampPosition = (rawX: number, rawY: number) => ({
-    x: Math.max(hallBounds.minX, Math.min(hallBounds.maxX - object.width, rawX)),
-    y: Math.max(hallBounds.minY, Math.min(hallBounds.maxY - object.height, rawY)),
-  });
+  const canEdit = buildMode === "design" && !object.locked && tool !== "pan";
 
   return (
     <Group
@@ -312,16 +433,36 @@ function FloorObjectShape({
       rotation={object.rotation}
       offsetX={0}
       offsetY={0}
-      draggable={!object.locked && tool !== "pan"}
-      onClick={onSelect}
-      onTap={onSelect}
-      onDblClick={onRotate}
-      onDblTap={onRotate}
-      onDragEnd={(e) => {
-        const rawX = (e.target.x() - offsetX) / pixelsPerFoot;
-        const rawY = (e.target.y() - offsetY) / pixelsPerFoot;
-        const clamped = clampPosition(rawX, rawY);
-        onDragEnd(clamped.x, clamped.y);
+      draggable={canEdit}
+      onClick={(event) => selectObject(object.id, { additive: event.evt.shiftKey })}
+      onTap={(event) => selectObject(object.id, { additive: event.evt.shiftKey })}
+      onDblClick={() => {
+        if (!canEdit) return;
+        pushHistory();
+        updateObject(object.id, { rotation: (object.rotation + 45) % 360 });
+      }}
+      onDblTap={() => {
+        if (!canEdit) return;
+        pushHistory();
+        updateObject(object.id, { rotation: (object.rotation + 45) % 360 });
+      }}
+      onMouseDown={(event) => {
+        if (!canEdit) return;
+        if (!selectionIds.includes(object.id)) {
+          selectObject(object.id, { additive: event.evt.shiftKey });
+        }
+      }}
+      onDragEnd={(event) => {
+        const rawX = (event.target.x() - offsetX) / pixelsPerFoot;
+        const rawY = (event.target.y() - offsetY) / pixelsPerFoot;
+        const clamped = clampToHall(rawX, rawY, object.width, object.height);
+        const dx = clamped.x - object.x;
+        const dy = clamped.y - object.y;
+        if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return;
+        const current = useEditorStore.getState();
+        const ids = current.selectionIds.includes(object.id) ? current.selectionIds : [object.id];
+        current.pushHistory();
+        current.translateObjects(ids, dx, dy);
       }}
     >
       <Rect
@@ -362,57 +503,6 @@ function FloorObjectShape({
   );
 }
 
-function Walkthrough3D({
-  roomWidth,
-  roomHeight,
-  objects,
-}: {
-  roomWidth: number;
-  roomHeight: number;
-  objects: FloorObject[];
-}) {
-  const scale = 8;
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-gradient-to-b from-surface-800 to-surface-900 p-8">
-      <div className="mb-4 text-center">
-        <h3 className="text-lg font-semibold text-white">3D Walkthrough</h3>
-        <p className="text-sm text-surface-400">
-          Isometric preview — full 3D engine coming soon
-        </p>
-      </div>
-      <div
-        className="relative border border-surface-600 bg-surface-700/50"
-        style={{
-          width: roomWidth * scale,
-          height: roomHeight * scale,
-          transform: "perspective(600px) rotateX(45deg)",
-          transformOrigin: "center center",
-        }}
-      >
-        {objects.map((obj) => (
-          <div
-            key={obj.id}
-            className="absolute flex items-center justify-center text-[8px] font-bold text-white"
-            style={{
-              left: obj.x * scale,
-              top: obj.y * scale,
-              width: obj.width * scale,
-              height: obj.height * scale,
-              backgroundColor: obj.color,
-              opacity: 0.9,
-              borderRadius: obj.category === "TABLES" ? "50%" : "2px",
-              transform: `rotate(${obj.rotation}deg)`,
-              boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
-            }}
-          >
-            {obj.itemName.split(" ")[0]}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function SimulationView({
   roomWidth,
   roomHeight,
@@ -434,7 +524,7 @@ function SimulationView({
   }));
 
   return (
-    <div className="relative flex flex-1 items-center justify-center bg-surface-900">
+    <div className="absolute inset-0 flex items-center justify-center bg-surface-900">
       <div
         className="relative border border-surface-600"
         style={{ width: roomWidth * scale, height: roomHeight * scale }}

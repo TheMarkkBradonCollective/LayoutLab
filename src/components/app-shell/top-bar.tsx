@@ -11,6 +11,8 @@ import {
   Share2,
   ChevronDown,
   Layers,
+  Pencil,
+  Eye,
 } from "lucide-react";
 import { useEditorStore } from "@/stores/editor-store";
 import { cn } from "@/lib/utils";
@@ -24,6 +26,9 @@ export function TopBar() {
     showGrid,
     is3DMode,
     isSimulationMode,
+    buildMode,
+    setBuildMode,
+    toggleShowGrid,
     toggle3DMode,
     toggleSimulationMode,
     undo,
@@ -71,6 +76,23 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-1">
+        <div className="mr-1 flex rounded-lg bg-surface-100 p-0.5">
+          <ModeButton
+            active={buildMode === "design"}
+            icon={Pencil}
+            label="Design"
+            compact={platform === "mobile"}
+            onClick={() => setBuildMode("design")}
+          />
+          <ModeButton
+            active={buildMode === "preview"}
+            icon={Eye}
+            label="Preview"
+            compact={platform === "mobile"}
+            onClick={() => setBuildMode("preview")}
+          />
+        </div>
+
         <ToolButton icon={Undo2} onClick={undo} disabled={!canUndo} title="Undo" />
         <ToolButton icon={Redo2} onClick={redo} disabled={!canRedo} title="Redo" />
 
@@ -79,7 +101,7 @@ export function TopBar() {
         <ToolButton
           icon={ZoomOut}
           onClick={() => setZoom(zoom - 0.25)}
-          disabled={zoom <= 0.25}
+          disabled={zoom <= 0.08}
           title="Zoom out"
         />
         <span className="min-w-[3rem] text-center text-xs text-surface-500">
@@ -97,13 +119,14 @@ export function TopBar() {
         <ToolButton
           icon={Grid3x3}
           active={showGrid}
+          onClick={toggleShowGrid}
           title="Toggle grid"
         />
         <ToolButton
           icon={Box}
           active={is3DMode}
           onClick={toggle3DMode}
-          title="3D walkthrough"
+          title="3D view — orbit and move the room"
         />
         <ToolButton
           icon={Play}
@@ -123,6 +146,35 @@ export function TopBar() {
         )}
       </div>
     </header>
+  );
+}
+
+function ModeButton({
+  active,
+  icon: Icon,
+  label,
+  compact,
+  onClick,
+}: {
+  active: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  compact: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
+        active ? "bg-white text-venue-700 shadow-sm" : "text-surface-500 hover:text-surface-700"
+      )}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {!compact && label}
+    </button>
   );
 }
 
