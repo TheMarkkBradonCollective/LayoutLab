@@ -1,7 +1,7 @@
 import { WorkspaceClient } from "./workspace-client";
 
 export const metadata = {
-  title: "Workspace — MyVenue",
+  title: "Workspace — LayoutLab",
   description: "Design and manage your venue layouts",
 };
 

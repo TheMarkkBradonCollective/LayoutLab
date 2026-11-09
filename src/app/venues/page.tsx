@@ -13,7 +13,7 @@ const DEMO_VENUES = [
 ];
 
 export const metadata = {
-  title: "Venues — MyVenue",
+  title: "Venues — LayoutLab",
 };
 
 export default function VenuesPage() {
@@ -23,9 +23,9 @@ export default function VenuesPage() {
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-venue-600 text-sm font-bold text-white">
-              MV
+              LL
             </div>
-            <span className="text-lg font-bold text-surface-900">MyVenue</span>
+            <span className="text-lg font-bold text-surface-900">LayoutLab</span>
           </Link>
         </div>
       </header>
