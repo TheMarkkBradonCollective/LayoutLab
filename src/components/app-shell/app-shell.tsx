@@ -7,7 +7,6 @@ import { APP_SHELL_CONFIGS } from "@/types";
 import { useEditorStore } from "@/stores/editor-store";
 import { TopBar } from "./top-bar";
 import { SidePanel, BottomPanel } from "./side-panel";
-import { LiveUsersBar } from "./live-users-bar";
 
 const FloorPlanner = dynamic(
   () =>
@@ -64,7 +63,6 @@ export function AppShell({ platform: forcedPlatform, children }: AppShellProps) 
         {config.showSidebar && config.platform !== "mobile" && <SidePanel />}
 
         <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-          <LiveUsersBar />
           <FloorPlanner />
           {children}
         </main>

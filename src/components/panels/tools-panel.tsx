@@ -20,10 +20,9 @@ export function ToolsPanel() {
     selectedObjectId,
     objects,
     duplicateObject,
-    deleteObject,
     toggleLock,
-    updateObject,
-    pushHistory,
+    rotateSelected,
+    removeSelected,
   } = useEditorStore();
 
   const selected = objects.find((o) => o.id === selectedObjectId);
@@ -71,10 +70,7 @@ export function ToolsPanel() {
             <ActionButton
               icon={RotateCw}
               label="Rotate"
-              onClick={() => {
-                pushHistory();
-                updateObject(selected.id, { rotation: (selected.rotation + 15) % 360 });
-              }}
+              onClick={() => rotateSelected(45)}
             />
             <ActionButton
               icon={selected.locked ? Unlock : Lock}
@@ -83,8 +79,8 @@ export function ToolsPanel() {
             />
             <ActionButton
               icon={Trash2}
-              label="Delete"
-              onClick={() => deleteObject(selected.id)}
+              label="Pick up"
+              onClick={removeSelected}
               variant="danger"
             />
           </div>
@@ -99,7 +95,7 @@ export function ToolsPanel() {
 
       {!selected && (
         <p className="text-xs text-surface-400">
-          Select an object on the floor plan to edit it.
+          Select furniture in the room to rotate, scale, or pick it up. Shift-click groups pieces so they move together. Drag empty floor to move the room.
         </p>
       )}
     </div>

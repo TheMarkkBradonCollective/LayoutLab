@@ -153,6 +153,27 @@ export interface ActivityEntry {
 
 // ─── App Shell ───────────────────────────────────────────────────────
 
+export type BuildMode = "design" | "preview";
+
+export type CameraTool = "orbit" | "slide";
+
+/** Orbit and slide for the 3D room. Yaw spins the room; pitch tilts it. */
+export interface RoomOrbit {
+  yaw: number;
+  pitch: number;
+  zoom: number;
+  panX: number;
+  panY: number;
+}
+
+export const DEFAULT_ROOM_ORBIT: RoomOrbit = {
+  yaw: -18,
+  pitch: 58,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+};
+
 export type AppPanel = "items" | "tools" | "layouts" | "settings" | "team" | "share" | "simulation";
 
 export interface AppShellConfig {
