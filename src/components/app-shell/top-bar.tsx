@@ -41,10 +41,10 @@ export function TopBar() {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-venue-600 text-xs font-bold text-white">
-            MV
+            LL
           </div>
           {platform !== "mobile" && (
-            <span className="text-sm font-semibold text-surface-800">MyVenue</span>
+            <span className="text-sm font-semibold text-surface-800">LayoutLab</span>
           )}
         </div>
 

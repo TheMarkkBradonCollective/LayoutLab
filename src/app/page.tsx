@@ -58,9 +58,9 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-venue-600 text-sm font-bold text-white">
-              MV
+              LL
             </div>
-            <span className="text-lg font-bold text-surface-900">MyVenue</span>
+            <span className="text-lg font-bold text-surface-900">LayoutLab</span>
           </div>
           <nav className="flex items-center gap-4">
             <Link
@@ -146,7 +146,7 @@ export default function HomePage() {
       </main>
 
       <footer className="border-t border-surface-200 bg-white py-8 text-center text-sm text-surface-400">
-        MyVenue — Built for The Rink Studios (TRS)
+        LayoutLab — Built for The Rink Studios (TRS)
       </footer>
     </div>
   );

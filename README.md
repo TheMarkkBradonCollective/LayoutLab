@@ -1,4 +1,4 @@
-# MyVenue
+# LayoutLab
 
 Venue-owned digital workspace for creating, managing, sharing, and simulating event layouts.
 
@@ -28,9 +28,9 @@ Locally, put `DATABASE_URL` in `.dev.vars` (for `npm run preview`) and `DATABASE
 
 ## Overview
 
-MyVenue is a tablet-first platform that gives venues full control over their digital space. Design accurate 2D floor plans, view layouts in 3D walkthrough mode, collaborate with teams in real time, simulate guest movement, and share layouts externally.
+LayoutLab is a tablet-first platform that gives venues full control over their digital space. Design accurate 2D floor plans, view layouts in 3D walkthrough mode, collaborate with teams in real time, simulate guest movement, and share layouts externally.
 
-**The venue owns its space. MyVenue provides the tools.**
+**The venue owns its space. LayoutLab provides the tools.**
 
 ## Features
 
@@ -100,7 +100,7 @@ prisma/
 
 ```
 Tablet AppShell ──┐
-Mobile AppShell ──┼── Shared MyVenue Core
+Mobile AppShell ──┼── Shared LayoutLab Core
 PC AppShell     ──┘       │
                     ┌──────┴──────┐
                     │   Prisma    │

@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MyVenue — The Rink Studios",
+  title: "LayoutLab — The Rink Studios",
   description:
     "Venue-owned digital workspace for The Rink Studios. Design, collaborate, simulate, and share event layouts.",
 };
